@@ -53,11 +53,27 @@ export default function SurveyShow({ survey }: Props) {
     },
   ];
 
-  const copyShareLink = () => {
+  const copyShareLink = async () => {
     if (survey.share_token) {
       const url = `${window.location.origin}/survey/${survey.share_token}`;
-      navigator.clipboard.writeText(url);
-      // You could add a toast notification here
+      try {
+        await navigator.clipboard.writeText(url);
+        // Show success message
+        alert('Link copied to clipboard!');
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          alert('Link copied to clipboard!');
+        } catch (fallbackErr) {
+          alert('Failed to copy link. Please copy it manually.');
+        }
+        document.body.removeChild(textArea);
+      }
     }
   };
 
@@ -78,7 +94,7 @@ export default function SurveyShow({ survey }: Props) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={survey.title} />
-      
+
       <div className="flex h-full flex-1 flex-col gap-6 p-6">
         <div className="flex justify-between items-start">
           <div>
@@ -125,7 +141,7 @@ export default function SurveyShow({ survey }: Props) {
                     </button>
                   </Link>
                 </div>
-                
+
                 {survey.questions.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-base-content/70 mb-4">No questions yet</p>
@@ -229,7 +245,7 @@ export default function SurveyShow({ survey }: Props) {
                     </Link>
                   )}
                 </div>
-                
+
                 {survey.responses.length === 0 ? (
                   <p className="text-base-content/70 text-center py-4">
                     No responses yet
@@ -279,4 +295,4 @@ export default function SurveyShow({ survey }: Props) {
       </div>
     </AppLayout>
   );
-} 
+}

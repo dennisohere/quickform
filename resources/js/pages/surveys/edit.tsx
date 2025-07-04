@@ -1,9 +1,8 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Save } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 interface Survey {
   id: string;
@@ -16,6 +15,25 @@ interface Props {
 }
 
 export default function SurveyEdit({ survey }: Props) {
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+    },
+    {
+      title: 'Surveys',
+      href: '/surveys',
+    },
+    {
+      title: survey.title,
+      href: `/surveys/${survey.id}`,
+    },
+    {
+      title: 'Edit Survey',
+      href: `/surveys/${survey.id}/edit`,
+    },
+  ];
+
   const { data, setData, put, processing, errors } = useForm({
     title: survey.title,
     description: survey.description || '',
@@ -23,69 +41,82 @@ export default function SurveyEdit({ survey }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    put(route('surveys.update', survey.id));
+    put(`/surveys/${survey.id}`);
   };
 
   return (
-    <>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Edit ${survey.title}`} />
       
-      <div className="container mx-auto py-8 max-w-2xl">
+      <div className="flex h-full flex-1 flex-col gap-6 p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Edit Survey</h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-base-content/70 mt-2">
             Update the details of your survey.
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Survey Details</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="d-card bg-base-100 shadow-xl max-w-2xl">
+          <div className="d-card-body">
+            <h2 className="d-card-title">Survey Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="title">Survey Title *</Label>
-                <Input
-                  id="title"
+              <div className="d-form-control">
+                <label className="d-label">
+                  <span className="d-label-text">Survey Title *</span>
+                </label>
+                <input
                   type="text"
+                  className={`d-input d-input-bordered w-full ${errors.title ? 'd-input-error' : ''}`}
                   value={data.title}
                   onChange={(e) => setData('title', e.target.value)}
                   placeholder="Enter survey title"
-                  className="mt-1"
                 />
                 {errors.title && (
-                  <p className="text-sm text-destructive mt-1">{errors.title}</p>
+                  <label className="d-label">
+                    <span className="d-label-text-alt text-error">{errors.title}</span>
+                  </label>
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="description">Description</Label>
+              <div className="d-form-control">
+                <label className="d-label">
+                  <span className="d-label-text">Description</span>
+                </label>
                 <textarea
-                  id="description"
+                  className={`d-textarea d-textarea-bordered h-24 ${errors.description ? 'd-textarea-error' : ''}`}
                   value={data.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('description', e.target.value)}
                   placeholder="Enter survey description (optional)"
-                  className="mt-1 flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  rows={4}
                 />
                 {errors.description && (
-                  <p className="text-sm text-destructive mt-1">{errors.description}</p>
+                  <label className="d-label">
+                    <span className="d-label-text-alt text-error">{errors.description}</span>
+                  </label>
                 )}
               </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={processing}>
-                  {processing ? 'Updating...' : 'Update Survey'}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => window.history.back()}>
+              <div className="d-card-actions justify-end">
+                <button type="submit" className="d-btn d-btn-primary" disabled={processing}>
+                  {processing ? (
+                    <>
+                      <span className="d-loading d-loading-spinner d-loading-sm"></span>
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Update Survey
+                    </>
+                  )}
+                </button>
+                <button type="button" className="d-btn d-btn-outline" onClick={() => window.history.back()}>
                   Cancel
-                </Button>
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-    </>
+    </AppLayout>
   );
 } 
