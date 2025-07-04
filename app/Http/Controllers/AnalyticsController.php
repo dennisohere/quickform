@@ -73,97 +73,128 @@ class AnalyticsController extends Controller
      */
     public function survey(Survey $survey)
     {
-        $this->authorize('view', $survey);
+        try {
+            $this->authorize('view', $survey);
 
-        // Basic survey stats
-        $totalResponses = $survey->responses()->count();
-        $completedResponses = $survey->responses()->where('is_completed', true)->count();
-        $completionRate = $totalResponses > 0 ? round(($completedResponses / $totalResponses) * 100, 1) : 0;
-        
-        // Response trends (last 30 days)
-        $responseTrends = $survey->responses()
-            ->where('created_at', '>=', Carbon::now()->subDays(30))
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-        
-        // Question analytics
-        $questionAnalytics = $survey->questions()
-            ->withCount('questionResponses')
-            ->with(['questionResponses' => function ($query) {
-                $query->select('question_id', 'answer');
-            }])
-            ->get()
-            ->map(function ($question) {
-                $answers = $question->questionResponses->pluck('answer')->filter();
-                $totalAnswers = $answers->count();
+            // Basic survey stats
+            $totalResponses = $survey->responses()->count();
+            $completedResponses = $survey->responses()->where('is_completed', true)->count();
+            $completionRate = $totalResponses > 0 ? round(($completedResponses / $totalResponses) * 100, 1) : 0;
+            
+            // Response trends (last 90 days with filled dates)
+            $startDate = Carbon::now()->subDays(90);
+            $endDate = Carbon::now();
+            
+            // Get actual response data
+            $responseData = $survey->responses()
+                ->where('created_at', '>=', $startDate)
+                ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get()
+                ->keyBy('date');
+            
+            // Fill in missing dates with zero counts
+            $responseTrends = collect();
+            $currentDate = $startDate->copy();
+            
+            while ($currentDate <= $endDate) {
+                $dateString = $currentDate->format('Y-m-d');
+                $count = $responseData->get($dateString, (object)['count' => 0])->count;
                 
-                $analytics = [
-                    'id' => $question->id,
-                    'question_text' => $question->question_text,
-                    'question_type' => $question->question_type,
-                    'total_answers' => $totalAnswers,
-                    'response_rate' => $question->questionResponses_count > 0 ? round(($totalAnswers / $question->questionResponses_count) * 100, 1) : 0,
-                ];
+                $responseTrends->push([
+                    'date' => $dateString,
+                    'count' => $count
+                ]);
                 
-                // Add type-specific analytics
-                if (in_array($question->question_type, ['radio', 'select', 'checkbox'])) {
-                    $options = $question->options ?? [];
-                    $optionCounts = [];
-                    $questionType = $question->question_type; // Store the question type in a local variable
+                $currentDate->addDay();
+            }
+            
+            // Question analytics
+            $questionAnalytics = $survey->questions()
+                ->withCount('questionResponses')
+                ->with(['questionResponses' => function ($query) {
+                    $query->select('question_id', 'answer');
+                }])
+                ->get()
+                ->map(function ($question) {
+                    $answers = $question->questionResponses->pluck('answer')->filter();
+                    $totalAnswers = $answers->count();
                     
-                    foreach ($options as $option) {
-                        $count = $answers->filter(function ($answer) use ($option, $questionType) {
-                            if ($questionType === 'checkbox') {
-                                return in_array($option, json_decode($answer, true) ?? []);
-                            }
-                            return $answer === $option;
-                        })->count();
+                    $analytics = [
+                        'id' => $question->id,
+                        'question_text' => $question->question_text,
+                        'question_type' => $question->question_type,
+                        'total_answers' => $totalAnswers,
+                        'response_rate' => $question->questionResponses_count > 0 ? round(($totalAnswers / $question->questionResponses_count) * 100, 1) : 0,
+                    ];
+                    
+                    // Add type-specific analytics
+                    if (in_array($question->question_type, ['radio', 'select', 'checkbox'])) {
+                        $options = $question->options ?? [];
+                        $optionCounts = [];
+                        $questionType = $question->question_type; // Store the question type in a local variable
                         
-                        $optionCounts[$option] = $count;
+                        // Ensure options is an array
+                        if (!is_array($options)) {
+                            $options = [];
+                        }
+                        
+                        foreach ($options as $option) {
+                            $count = $answers->filter(function ($answer) use ($option, $questionType) {
+                                if ($questionType === 'checkbox') {
+                                    return in_array($option, json_decode($answer, true) ?? []);
+                                }
+                                return $answer === $option;
+                            })->count();
+                            
+                            $optionCounts[$option] = $count;
+                        }
+                        
+                        $analytics['option_counts'] = $optionCounts;
                     }
                     
-                    $analytics['option_counts'] = $optionCounts;
-                }
-                
-                return $analytics;
-            });
-        
-        // Respondent demographics (if name/email are collected)
-        $respondentStats = [
-            'withName' => $survey->responses()->whereNotNull('respondent_name')->count(),
-            'withEmail' => $survey->responses()->whereNotNull('respondent_email')->count(),
-            'anonymous' => $survey->responses()->whereNull('respondent_name')->whereNull('respondent_email')->count(),
-        ];
-        
-        // Recent responses
-        $recentResponses = $survey->responses()
-            ->with('questionResponses.question')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+                    return $analytics;
+                });
+            
+            // Respondent demographics (if name/email are collected)
+            $respondentStats = [
+                'withName' => $survey->responses()->whereNotNull('respondent_name')->count(),
+                'withEmail' => $survey->responses()->whereNotNull('respondent_email')->count(),
+                'anonymous' => $survey->responses()->whereNull('respondent_name')->whereNull('respondent_email')->count(),
+            ];
+            
+            // Recent responses
+            $recentResponses = $survey->responses()
+                ->with('questionResponses.question')
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
 
-        $data = [
-            'survey' => [
-                'id' => $survey->id,
-                'title' => $survey->title,
-                'description' => $survey->description,
-                'is_published' => $survey->is_published,
-                'created_at' => $survey->created_at,
-                'questions_count' => $survey->questions->count(),
-            ],
-            'stats' => [
-                'totalResponses' => $totalResponses,
-                'completedResponses' => $completedResponses,
-                'completionRate' => $completionRate,
-                'respondentStats' => $respondentStats,
-            ],
-            'responseTrends' => $responseTrends->toArray(),
-            'questionAnalytics' => $questionAnalytics->toArray(),
-            'recentResponses' => $recentResponses->toArray(),
-        ];
+            $data = [
+                'survey' => [
+                    'id' => $survey->id,
+                    'title' => $survey->title,
+                    'description' => $survey->description,
+                    'is_published' => $survey->is_published,
+                    'created_at' => $survey->created_at,
+                    'questions_count' => $survey->questions->count(),
+                ],
+                'stats' => [
+                    'totalResponses' => $totalResponses,
+                    'completedResponses' => $completedResponses,
+                    'completionRate' => $completionRate,
+                    'respondentStats' => $respondentStats,
+                ],
+                'responseTrends' => $responseTrends ? $responseTrends->toArray() : [],
+                'questionAnalytics' => $questionAnalytics ? $questionAnalytics->toArray() : [],
+                'recentResponses' => $recentResponses ? $recentResponses->toArray() : [],
+            ];
 
-        return Inertia::render('analytics/survey', $data);
+            return Inertia::render('analytics/survey', $data);
+        } catch (\Exception $e) {
+            \Log::error('Analytics error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Unable to load analytics: ' . $e->getMessage());
+        }
     }
 }

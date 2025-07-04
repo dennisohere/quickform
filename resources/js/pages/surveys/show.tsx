@@ -123,7 +123,7 @@ export default function SurveyShow({ survey }: Props) {
                 Created {new Date(survey.created_at).toLocaleDateString()}
               </span>
             </div>
-            
+
             {/* Respondent Requirements */}
             {(survey.require_respondent_name || survey.require_respondent_email) && (
               <div className="mt-4">
@@ -140,7 +140,7 @@ export default function SurveyShow({ survey }: Props) {
             )}
           </div>
           <div className="flex gap-2">
-            <button 
+            <button
               className="d-btn d-btn-outline"
               onClick={handleEditSurvey}
             >
@@ -175,7 +175,7 @@ export default function SurveyShow({ survey }: Props) {
                   <div className="text-center py-8">
                     <p className="text-base-content/70 mb-4">No questions yet</p>
                     <Link href={`/surveys/${survey.id}/questions/create`}>
-                      <button className="d-btn d-btn-primary">
+                      <button className="d-btn d-btn-soft d-btn-primary">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Your First Question
                       </button>
@@ -311,19 +311,23 @@ export default function SurveyShow({ survey }: Props) {
               <div className="d-card-body">
                 <h2 className="d-card-title">Actions</h2>
                 <div className="space-y-2">
-                  <Link href={`/analytics/survey/${survey.id}`}>
-                    <button className="d-btn d-btn-outline w-full">
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      View Analytics
-                    </button>
-                  </Link>
-                  <button
-                    className="d-btn d-btn-outline d-btn-error w-full"
-                    onClick={deleteSurvey}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Survey
-                  </button>
+                  <div>
+                      <Link href={`/analytics/survey/${survey.id}`}>
+                          <button className="d-btn d-btn-outline w-full">
+                              <BarChart3 className="w-4 h-4 mr-2" />
+                              View Analytics
+                          </button>
+                      </Link>
+                  </div>
+                  <div>
+                      <button
+                          className="d-btn d-btn-soft d-btn-error w-full"
+                          onClick={deleteSurvey}
+                      >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Survey
+                      </button>
+                  </div>
                 </div>
               </div>
             </div>
