@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { BarChart3, FileText, Users, TrendingUp, Calendar, Eye } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from '@/components/ui/chart';
 
 interface Stats {
   totalSurveys: number;
@@ -54,15 +54,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function AnalyticsIndex({ stats, recentResponses, responseTrends, surveyPerformance }: Props) {
-  // Test data for debugging
-  const testData = [
-    { date: '2024-01-01', count: 10 },
-    { date: '2024-01-02', count: 15 },
-    { date: '2024-01-03', count: 8 },
-    { date: '2024-01-04', count: 20 },
-    { date: '2024-01-05', count: 12 },
-  ];
-
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Analytics" />
@@ -70,82 +61,6 @@ export default function AnalyticsIndex({ stats, recentResponses, responseTrends,
       <div className="flex h-full flex-1 flex-col gap-6 p-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-        </div>
-
-        {/* Test Chart */}
-        <div className="d-card bg-base-100 shadow-xl">
-          <div className="d-card-body">
-            <h2 className="d-card-title">Test Chart</h2>
-            <div className="h-80">
-              <ChartContainer config={{ count: { label: "Test", color: "hsl(var(--primary))" } }}>
-                <AreaChart data={testData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis 
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <Tooltip 
-                    content={<ChartTooltipContent config={{ count: { label: "Test", color: "hsl(var(--primary))" } }} />}
-                  />
-                  <Area 
-                    type="monotone"
-                    dataKey="count" 
-                    stroke="hsl(var(--primary))" 
-                    fill="hsl(var(--primary))"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ChartContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Simple Test Chart */}
-        <div className="d-card bg-base-100 shadow-xl">
-          <div className="d-card-body">
-            <h2 className="d-card-title">Simple Test Chart</h2>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={testData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#888888" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis 
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <Tooltip />
-                  <Area 
-                    type="monotone"
-                    dataKey="count" 
-                    stroke="#8884d8" 
-                    fill="#8884d8"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
         </div>
 
         {/* Stats Cards */}
@@ -276,6 +191,8 @@ export default function AnalyticsIndex({ stats, recentResponses, responseTrends,
                         const date = new Date(String(value));
                         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                       }}
+                      interval={Math.ceil(responseTrends.length / 8)} // Show ~8 labels max
+                      minTickGap={30} // Minimum gap between ticks
                     />
                     <YAxis 
                       stroke="#888888"

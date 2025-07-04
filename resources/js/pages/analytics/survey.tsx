@@ -167,6 +167,8 @@ export default function SurveyAnalytics({
                           const date = new Date(String(value));
                           return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         }}
+                        interval={Math.ceil(responseTrends.length / 8)} // Show ~8 labels max
+                        minTickGap={30} // Minimum gap between ticks
                       />
                       <YAxis 
                         stroke="#888888"
