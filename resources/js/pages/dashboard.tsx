@@ -2,7 +2,27 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Plus, BarChart3, Users, FileText } from 'lucide-react';
+import { Plus, BarChart3, Users, FileText, Eye } from 'lucide-react';
+
+interface Stats {
+    totalSurveys: number;
+    activeSurveys: number;
+    totalResponses: number;
+}
+
+interface RecentSurvey {
+    id: string;
+    title: string;
+    is_published: boolean;
+    created_at: string;
+    questions_count: number;
+    responses_count: number;
+}
+
+interface Props {
+    stats: Stats;
+    recentSurveys: RecentSurvey[];
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,7 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ stats, recentSurveys }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -32,7 +52,7 @@ export default function Dashboard() {
                             <FileText className="w-8 h-8" />
                         </div>
                         <div className="d-stat-title">Total Surveys</div>
-                        <div className="d-stat-value text-primary">0</div>
+                        <div className="d-stat-value text-primary">{stats.totalSurveys}</div>
                         <div className="d-stat-desc">Surveys created</div>
                     </div>
 
@@ -41,7 +61,7 @@ export default function Dashboard() {
                             <Users className="w-8 h-8" />
                         </div>
                         <div className="d-stat-title">Total Responses</div>
-                        <div className="d-stat-value text-secondary">0</div>
+                        <div className="d-stat-value text-secondary">{stats.totalResponses}</div>
                         <div className="d-stat-desc">Responses collected</div>
                     </div>
 
@@ -50,7 +70,7 @@ export default function Dashboard() {
                             <BarChart3 className="w-8 h-8" />
                         </div>
                         <div className="d-stat-title">Active Surveys</div>
-                        <div className="d-stat-value text-accent">0</div>
+                        <div className="d-stat-value text-accent">{stats.activeSurveys}</div>
                         <div className="d-stat-desc">Published surveys</div>
                     </div>
                 </div>
@@ -58,27 +78,76 @@ export default function Dashboard() {
                 <div className="grid gap-6 md:grid-cols-2">
                     <div className="d-card bg-base-100 shadow-xl">
                         <div className="d-card-body">
+                            <h2 className="d-card-title">Recent Surveys</h2>
+                            {recentSurveys.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="text-base-content/70 mb-4">No surveys yet</p>
+                                    <Link href="/surveys/create">
+                                        <button className="d-btn d-btn-primary">
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Create Your First Survey
+                                        </button>
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {recentSurveys.map((survey) => (
+                                        <div key={survey.id} className="d-card bg-base-200 shadow-sm">
+                                            <div className="d-card-body p-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-medium">{survey.title}</h3>
+                                                        <div className="flex items-center gap-4 text-sm text-base-content/70 mt-1">
+                                                            <span>{survey.questions_count} questions</span>
+                                                            <span>{survey.responses_count} responses</span>
+                                                            <div className={`d-badge d-badge-xs ${survey.is_published ? 'd-badge-success' : 'd-badge-neutral'}`}>
+                                                                {survey.is_published ? 'Published' : 'Draft'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Link href={`/surveys/${survey.id}`}>
+                                                            <button className="d-btn d-btn-outline d-btn-sm">
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="text-center pt-2">
+                                        <Link href="/surveys">
+                                            <button className="d-btn d-btn-outline d-btn-sm">
+                                                View All Surveys
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="d-card bg-base-100 shadow-xl">
+                        <div className="d-card-body">
                             <h2 className="d-card-title">Quick Actions</h2>
                             <div className="space-y-4">
+                                <Link href="/surveys/create">
+                                    <button className="d-btn d-btn-primary w-full justify-start">
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Create New Survey
+                                    </button>
+                                </Link>
                                 <Link href="/surveys">
                                     <button className="d-btn d-btn-outline w-full justify-start">
                                         <FileText className="w-4 h-4 mr-2" />
                                         View All Surveys
                                     </button>
                                 </Link>
-                                <Link href="/surveys/create">
-                                    <button className="d-btn d-btn-outline w-full justify-start">
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Create New Survey
-                                    </button>
-                                </Link>
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="d-card bg-base-100 shadow-xl">
-                        <div className="d-card-body">
-                            <h2 className="d-card-title">Getting Started</h2>
+                            <div className="d-divider">Getting Started</div>
+                            
                             <div className="space-y-3">
                                 <div className="text-sm">
                                     <p className="font-medium">1. Create a Survey</p>
@@ -86,7 +155,7 @@ export default function Dashboard() {
                                 </div>
                                 <div className="text-sm">
                                     <p className="font-medium">2. Add Questions</p>
-                                    <p className="text-base-content/70">Choose from various question types like text, multiple choice, and more.</p>
+                                    <p className="text-base-content/70">Choose from various question types like text, radio buttons, and more.</p>
                                 </div>
                                 <div className="text-sm">
                                     <p className="font-medium">3. Publish & Share</p>
