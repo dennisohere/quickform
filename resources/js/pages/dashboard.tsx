@@ -2,7 +2,7 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Plus, BarChart3, Users, FileText, Eye } from 'lucide-react';
+import { Plus, BarChart3, Users, FileText, Eye, LibraryBig, TextQuote, ListTodo } from 'lucide-react';
 
 interface Stats {
     totalSurveys: number;
@@ -46,30 +46,30 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                     </Link>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-3">
-                    <div className="d-stat bg-base-100 shadow">
+                <div className="d-stats shadow">
+                    <div className="d-stat">
                         <div className="d-stat-figure text-primary">
-                            <FileText className="w-8 h-8" />
+                            <LibraryBig strokeWidth={0.6} className='size-16'/>
                         </div>
-                        <div className="d-stat-title">Total Surveys</div>
+                        <div className="d-stat-title font-medium">Total Surveys</div>
                         <div className="d-stat-value text-primary">{stats.totalSurveys}</div>
                         <div className="d-stat-desc">Surveys created</div>
                     </div>
 
-                    <div className="d-stat bg-base-100 shadow">
+                    <div className="d-stat">
                         <div className="d-stat-figure text-secondary">
-                            <Users className="w-8 h-8" />
+                            <TextQuote strokeWidth={0.6} className='size-16'/>
                         </div>
-                        <div className="d-stat-title">Total Responses</div>
+                        <div className="d-stat-title font-medium">Total responses</div>
                         <div className="d-stat-value text-secondary">{stats.totalResponses}</div>
                         <div className="d-stat-desc">Responses collected</div>
                     </div>
 
-                    <div className="d-stat bg-base-100 shadow">
+                    <div className="d-stat">
                         <div className="d-stat-figure text-accent">
-                            <BarChart3 className="w-8 h-8" />
+                            <ListTodo strokeWidth={0.6} className='size-16'/>
                         </div>
-                        <div className="d-stat-title">Active Surveys</div>
+                        <div className="d-stat-title font-medium">Active Surveys</div>
                         <div className="d-stat-value text-accent">{stats.activeSurveys}</div>
                         <div className="d-stat-desc">Published surveys</div>
                     </div>
@@ -147,7 +147,7 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                             </div>
 
                             <div className="d-divider">Getting Started</div>
-                            
+
                             <div className="space-y-3">
                                 <div className="text-sm">
                                     <p className="font-medium">1. Create a Survey</p>

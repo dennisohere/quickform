@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Survey;
 use App\Models\Response;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -18,6 +19,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        /** @var User $user */
         $user = $request->user();
 
         // Get statistics for the authenticated user
@@ -25,7 +27,7 @@ class DashboardController extends Controller
         $activeSurveys = Survey::where('created_by', $user->id)
             ->where('is_published', true)
             ->count();
-        
+
         // Get total responses across all user's surveys
         $totalResponses = Response::whereHas('survey', function ($query) use ($user) {
             $query->where('created_by', $user->id);
@@ -47,4 +49,4 @@ class DashboardController extends Controller
             'recentSurveys' => $recentSurveys,
         ]);
     }
-} 
+}

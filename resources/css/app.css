@@ -2,10 +2,6 @@
 
 @plugin 'tailwindcss-animate';
 
-@plugin "daisyui" {
-    prefix: "d-";
-}
-
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
@@ -160,4 +156,9 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+@plugin "daisyui" {
+    prefix: "d-";
+    root: "body";
 }
