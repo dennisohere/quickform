@@ -1,32 +1,20 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-
-interface Question {
-  id: string;
-  question_text: string;
-  question_type: string;
-  is_required: boolean;
-  order: number;
-  options?: string[];
-}
+import { Play } from 'lucide-react';
 
 interface Survey {
   id: string;
   title: string;
   description: string | null;
-  share_token: string;
-  questions: Question[];
+  questions_count: number;
 }
 
 interface Props {
   survey: Survey;
+  token: string;
 }
 
-export default function PublicSurveyShow({ survey }: Props) {
+export default function PublicSurveyShow({ survey, token }: Props) {
   const { data, setData, post, processing, errors } = useForm({
     respondent_name: '',
     respondent_email: '',
@@ -34,74 +22,84 @@ export default function PublicSurveyShow({ survey }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post(route('public.survey.start', survey.share_token || ''));
+    post(`/survey/${token}/start`);
   };
 
   return (
     <>
       <Head title={survey.title} />
       
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">{survey.title}</h1>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4">
+        <div className="card bg-base-100 shadow-2xl max-w-md w-full">
+          <div className="card-body text-center">
+            <h1 className="card-title text-2xl justify-center mb-4">{survey.title}</h1>
+            
             {survey.description && (
-              <p className="mt-2 text-gray-600">{survey.description}</p>
+              <p className="text-base-content/70 mb-6">{survey.description}</p>
             )}
-          </div>
+            
+            <div className="stats stats-horizontal shadow mb-6">
+              <div className="stat">
+                <div className="stat-title">Questions</div>
+                <div className="stat-value text-primary">{survey.questions_count}</div>
+              </div>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">Start Survey</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="respondent_name">Your Name (Optional)</Label>
-                  <Input
-                    id="respondent_name"
-                    type="text"
-                    value={data.respondent_name}
-                    onChange={(e) => setData('respondent_name', e.target.value)}
-                    placeholder="Enter your name"
-                    className="mt-1"
-                  />
-                  {errors.respondent_name && (
-                    <p className="text-sm text-destructive mt-1">{errors.respondent_name}</p>
-                  )}
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Your Name (Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full"
+                  value={data.respondent_name}
+                  onChange={(e) => setData('respondent_name', e.target.value)}
+                  placeholder="Enter your name"
+                />
+              </div>
 
-                <div>
-                  <Label htmlFor="respondent_email">Your Email (Optional)</Label>
-                  <Input
-                    id="respondent_email"
-                    type="email"
-                    value={data.respondent_email}
-                    onChange={(e) => setData('respondent_email', e.target.value)}
-                    placeholder="Enter your email"
-                    className="mt-1"
-                  />
-                  {errors.respondent_email && (
-                    <p className="text-sm text-destructive mt-1">{errors.respondent_email}</p>
-                  )}
-                </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Your Email (Optional)</span>
+                </label>
+                <input
+                  type="email"
+                  className="input input-bordered w-full"
+                  value={data.respondent_email}
+                  onChange={(e) => setData('respondent_email', e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
 
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-4">
-                    This survey has {survey.questions.length} question{survey.questions.length !== 1 ? 's' : ''}.
-                  </p>
-                  <Button type="submit" disabled={processing} className="w-full">
-                    {processing ? 'Starting...' : 'Start Survey'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+              <button type="submit" className="btn btn-primary w-full" disabled={processing}>
+                {processing ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm"></span>
+                    Starting Survey...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Survey
+                  </>
+                )}
+              </button>
+            </form>
 
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              Your responses will be kept confidential and used only for the purposes stated in this survey.
-            </p>
+            <div className="divider">OR</div>
+            
+            <button 
+              className="btn btn-outline w-full"
+              onClick={() => {
+                setData('respondent_name', '');
+                setData('respondent_email', '');
+                post(`/survey/${token}/start`);
+              }}
+              disabled={processing}
+            >
+              Start Anonymously
+            </button>
           </div>
         </div>
       </div>

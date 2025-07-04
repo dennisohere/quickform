@@ -1,9 +1,6 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Share2, Copy, Eye, Trash2, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit, Copy, Eye, Trash2, ArrowUpDown } from 'lucide-react';
 
 interface Question {
   id: string;
@@ -48,16 +45,16 @@ export default function SurveyShow({ survey }: Props) {
   };
 
   const togglePublish = () => {
-    router.patch(route('surveys.toggle-publish', survey.id));
+    router.patch(`/surveys/${survey.id}/toggle-publish`);
   };
 
   const regenerateToken = () => {
-    router.patch(route('surveys.regenerate-token', survey.id));
+    router.patch(`/surveys/${survey.id}/regenerate-token`);
   };
 
   const deleteSurvey = () => {
     if (confirm('Are you sure you want to delete this survey?')) {
-      router.delete(route('surveys.destroy', survey.id));
+      router.delete(`/surveys/${survey.id}`);
     }
   };
 
@@ -70,57 +67,56 @@ export default function SurveyShow({ survey }: Props) {
           <div>
             <h1 className="text-3xl font-bold">{survey.title}</h1>
             {survey.description && (
-              <p className="text-muted-foreground mt-2">{survey.description}</p>
+              <p className="text-base-content/70 mt-2">{survey.description}</p>
             )}
             <div className="flex items-center gap-2 mt-4">
-              <Badge variant={survey.is_published ? 'default' : 'secondary'}>
+              <div className={`badge ${survey.is_published ? 'badge-success' : 'badge-neutral'}`}>
                 {survey.is_published ? 'Published' : 'Draft'}
-              </Badge>
-              <span className="text-sm text-muted-foreground">
+              </div>
+              <span className="text-sm text-base-content/70">
                 Created {new Date(survey.created_at).toLocaleDateString()}
               </span>
             </div>
           </div>
           <div className="flex gap-2">
-            <Link href={route('surveys.edit', survey.id)}>
-              <Button variant="outline">
+            <Link href={`/surveys/${survey.id}/edit`}>
+              <button className="btn btn-outline">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Survey
-              </Button>
+              </button>
             </Link>
-            <Button
-              variant={survey.is_published ? 'outline' : 'default'}
+            <button
+              className={`btn ${survey.is_published ? 'btn-outline' : 'btn-primary'}`}
               onClick={togglePublish}
             >
               {survey.is_published ? 'Unpublish' : 'Publish'}
-            </Button>
+            </button>
           </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Questions Section */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Questions ({survey.questions.length})</CardTitle>
-                  <Link href={route('surveys.questions.create', survey.id)}>
-                    <Button size="sm">
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="card-title">Questions ({survey.questions.length})</h2>
+                  <Link href={`/surveys/${survey.id}/questions/create`}>
+                    <button className="btn btn-primary btn-sm">
                       <Plus className="w-4 h-4 mr-2" />
                       Add Question
-                    </Button>
+                    </button>
                   </Link>
                 </div>
-              </CardHeader>
-              <CardContent>
+                
                 {survey.questions.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No questions yet</p>
-                    <Link href={route('surveys.questions.create', survey.id)}>
-                      <Button>
+                    <p className="text-base-content/70 mb-4">No questions yet</p>
+                    <Link href={`/surveys/${survey.id}/questions/create`}>
+                      <button className="btn btn-primary">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Your First Question
-                      </Button>
+                      </button>
                     </Link>
                   </div>
                 ) : (
@@ -128,142 +124,139 @@ export default function SurveyShow({ survey }: Props) {
                     {survey.questions.map((question, index) => (
                       <div
                         key={question.id}
-                        className="flex items-center justify-between p-4 border rounded-lg"
+                        className="card bg-base-200 shadow-sm"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">
-                              {index + 1}.
-                            </span>
-                            <span className="font-medium">{question.question_text}</span>
-                            {question.is_required && (
-                              <Badge variant="destructive" className="text-xs">
-                                Required
-                              </Badge>
-                            )}
+                        <div className="card-body">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-medium text-base-content/70">
+                                  {index + 1}.
+                                </span>
+                                <span className="font-medium">{question.question_text}</span>
+                                {question.is_required && (
+                                  <div className="badge badge-error badge-xs">Required</div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-base-content/70">
+                                <span className="capitalize">{question.question_type}</span>
+                                {question.options && question.options.length > 0 && (
+                                  <span>• {question.options.length} options</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Link href={`/surveys/${survey.id}/questions/${question.id}/edit`}>
+                                <button className="btn btn-outline btn-sm">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </Link>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span className="capitalize">{question.question_type}</span>
-                            {question.options && question.options.length > 0 && (
-                              <span>• {question.options.length} options</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Link href={route('surveys.questions.edit', [survey.id, question.id])}>
-                            <Button variant="outline" size="sm">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </Link>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Share Section */}
             {survey.is_published && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Share Survey</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {survey.share_token ? (
-                    <>
-                      <div className="p-3 bg-muted rounded-lg">
-                        <p className="text-sm font-medium mb-1">Share Link</p>
-                        <p className="text-xs text-muted-foreground break-all">
-                          {`${window.location.origin}/survey/${survey.share_token}`}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button onClick={copyShareLink} className="flex-1">
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy Link
-                        </Button>
-                        <Button variant="outline" onClick={regenerateToken}>
-                          <ArrowUpDown className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <Button onClick={regenerateToken} className="w-full">
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Generate Share Link
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+              <div className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                  <h2 className="card-title">Share Survey</h2>
+                  <div className="space-y-4">
+                    {survey.share_token ? (
+                      <>
+                        <div className="bg-base-200 rounded-lg p-3">
+                          <p className="text-sm font-medium mb-1">Share Link</p>
+                          <p className="text-xs text-base-content/70 break-all">
+                            {`${window.location.origin}/survey/${survey.share_token}`}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={copyShareLink} className="btn btn-primary flex-1">
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Link
+                          </button>
+                          <button className="btn btn-outline" onClick={regenerateToken}>
+                            <ArrowUpDown className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <button onClick={regenerateToken} className="btn btn-primary w-full">
+                        Generate Share Link
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Responses Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Responses ({survey.responses.length})</CardTitle>
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="card-title">Responses ({survey.responses.length})</h2>
                   {survey.responses.length > 0 && (
-                    <Link href={route('surveys.responses', survey.id)}>
-                      <Button variant="outline" size="sm">
+                    <Link href={`/surveys/${survey.id}/responses`}>
+                      <button className="btn btn-outline btn-sm">
                         <Eye className="w-4 h-4 mr-1" />
                         View All
-                      </Button>
+                      </button>
                     </Link>
                   )}
                 </div>
-              </CardHeader>
-              <CardContent>
+                
                 {survey.responses.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
+                  <p className="text-base-content/70 text-center py-4">
                     No responses yet
                   </p>
                 ) : (
                   <div className="space-y-3">
                     {survey.responses.slice(0, 5).map((response) => (
-                      <div key={response.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={response.id} className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
                         <div>
                           <p className="font-medium">
                             {response.respondent_name || 'Anonymous'}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-base-content/70">
                             {new Date(response.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <Badge variant={response.is_completed ? 'default' : 'secondary'}>
+                        <div className={`badge ${response.is_completed ? 'badge-success' : 'badge-neutral'}`}>
                           {response.is_completed ? 'Completed' : 'In Progress'}
-                        </Badge>
+                        </div>
                       </div>
                     ))}
                     {survey.responses.length > 5 && (
-                      <p className="text-sm text-muted-foreground text-center">
+                      <p className="text-sm text-base-content/70 text-center">
                         +{survey.responses.length - 5} more responses
                       </p>
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  variant="outline"
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body">
+                <h2 className="card-title">Actions</h2>
+                <button
+                  className="btn btn-outline btn-error w-full"
                   onClick={deleteSurvey}
-                  className="w-full text-destructive hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete Survey
-                </Button>
-              </CardContent>
-            </Card>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

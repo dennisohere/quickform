@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface Question {
   id: string;
@@ -18,253 +14,218 @@ interface Question {
 interface Survey {
   id: string;
   title: string;
-  description: string | null;
-  share_token: string;
-  questions: Question[];
-}
-
-interface Response {
-  id: string;
-  respondent_name?: string;
-  respondent_email?: string;
+  questions_count: number;
 }
 
 interface Props {
   survey: Survey;
-  response: Response;
-  currentQuestion: Question;
+  question: Question;
   questionIndex: number;
-  totalQuestions: number;
+  responseId: string;
+  token: string;
+  previousAnswer?: string | string[];
 }
 
 export default function PublicSurveyQuestion({ 
   survey, 
-  response, 
-  currentQuestion, 
+  question, 
   questionIndex, 
-  totalQuestions 
+  responseId, 
+  token,
+  previousAnswer 
 }: Props) {
-  const [answer, setAnswer] = useState<string>('');
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [answer, setAnswer] = useState<string | string[]>(
+    previousAnswer || (question.question_type === 'checkbox' ? [] : '')
+  );
 
-  const { data, setData, post, processing, errors } = useForm({
-    answer: ''
+  const { data, setData, post, processing } = useForm({
+    answer: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    let finalAnswer = '';
-    
-    if (currentQuestion.question_type === 'checkbox') {
-      finalAnswer = selectedOptions.join(', ');
+    if (question.is_required) {
+      if (question.question_type === 'checkbox') {
+        if ((answer as string[]).length === 0) {
+          alert('This question is required. Please select at least one option.');
+          return;
+        }
+      } else {
+        if (!answer || (answer as string).trim() === '') {
+          alert('This question is required. Please provide an answer.');
+          return;
+        }
+      }
+    }
+
+    setData('answer', Array.isArray(answer) ? answer.join(', ') : answer);
+    post(`/survey/${token}/response/${responseId}/question/${questionIndex}/answer`);
+  };
+
+  const handleCheckboxChange = (option: string) => {
+    const currentAnswers = answer as string[];
+    if (currentAnswers.includes(option)) {
+      setAnswer(currentAnswers.filter(a => a !== option));
     } else {
-      finalAnswer = answer;
-    }
-
-    if (currentQuestion.is_required && !finalAnswer.trim()) {
-      return;
-    }
-
-    setData('answer', finalAnswer);
-    post(route('public.survey.answer', [
-      survey.share_token,
-      response.id,
-      questionIndex
-    ]));
-  };
-
-  const handleOptionChange = (option: string, checked: boolean) => {
-    if (checked) {
-      setSelectedOptions([...selectedOptions, option]);
-    } else {
-      setSelectedOptions(selectedOptions.filter(o => o !== option));
+      setAnswer([...currentAnswers, option]);
     }
   };
 
-  const progress = ((questionIndex + 1) / totalQuestions) * 100;
-
-  const renderQuestionInput = () => {
-    switch (currentQuestion.question_type) {
-      case 'textarea':
-        return (
-          <textarea
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Enter your answer"
-            className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required={currentQuestion.is_required}
-          />
-        );
-
-      case 'radio':
-        return (
-          <div className="space-y-3">
-            {currentQuestion.options?.map((option, index) => (
-              <div key={index} className="flex items-center">
-                <input
-                  type="radio"
-                  id={`option-${index}`}
-                  name="answer"
-                  value={option}
-                  checked={answer === option}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  required={currentQuestion.is_required}
-                  className="mr-3"
-                />
-                <Label htmlFor={`option-${index}`} className="cursor-pointer">
-                  {option}
-                </Label>
-              </div>
-            ))}
-          </div>
-        );
-
-      case 'checkbox':
-        return (
-          <div className="space-y-3">
-            {currentQuestion.options?.map((option, index) => (
-              <div key={index} className="flex items-center">
-                <input
-                  type="checkbox"
-                  id={`option-${index}`}
-                  value={option}
-                  checked={selectedOptions.includes(option)}
-                  onChange={(e) => handleOptionChange(option, e.target.checked)}
-                  required={currentQuestion.is_required && selectedOptions.length === 0}
-                  className="mr-3"
-                />
-                <Label htmlFor={`option-${index}`} className="cursor-pointer">
-                  {option}
-                </Label>
-              </div>
-            ))}
-          </div>
-        );
-
-      case 'select':
-        return (
-          <select
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            required={currentQuestion.is_required}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select an option</option>
-            {currentQuestion.options?.map((option, index) => (
-              <option key={index} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        );
-
-      case 'number':
-        return (
-          <Input
-            type="number"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Enter a number"
-            required={currentQuestion.is_required}
-          />
-        );
-
-      case 'email':
-        return (
-          <Input
-            type="email"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Enter your email"
-            required={currentQuestion.is_required}
-          />
-        );
-
-      case 'date':
-        return (
-          <Input
-            type="date"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            required={currentQuestion.is_required}
-          />
-        );
-
-      default: // text
-        return (
-          <Input
-            type="text"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Enter your answer"
-            required={currentQuestion.is_required}
-          />
-        );
-    }
-  };
+  const progress = ((questionIndex + 1) / survey.questions_count) * 100;
 
   return (
     <>
       <Head title={`Question ${questionIndex + 1} - ${survey.title}`} />
       
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl w-full space-y-8">
-          {/* Progress Bar */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-medium text-gray-700">
-                Question {questionIndex + 1} of {totalQuestions}
-              </span>
-              <span className="text-sm text-gray-500">
-                {Math.round(progress)}% Complete
-              </span>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4">
+        <div className="card bg-base-100 shadow-2xl max-w-2xl w-full">
+          <div className="card-body">
+            {/* Progress */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Question {questionIndex + 1} of {survey.questions_count}</span>
+                <span className="text-sm text-base-content/70">{Math.round(progress)}%</span>
+              </div>
+                             <progress className="progress progress-primary w-full" value={progress} max="100"></progress>
             </div>
-            <Progress value={progress} className="w-full" />
-          </div>
 
-          {/* Question Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">
-                {currentQuestion.question_text}
-                {currentQuestion.is_required && (
-                  <span className="text-red-500 ml-1">*</span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  {renderQuestionInput()}
-                  {errors.answer && (
-                    <p className="text-sm text-destructive mt-1">{errors.answer}</p>
-                  )}
+            {/* Question */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">{question.question_text}</h2>
+              {question.is_required && (
+                <div className="badge badge-error mb-4">Required</div>
+              )}
+            </div>
+
+            {/* Answer Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {question.question_type === 'text' && (
+                <div className="form-control">
+                  <input
+                    type="text"
+                    className="input input-bordered w-full"
+                    value={answer as string}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    placeholder="Enter your answer"
+                  />
                 </div>
+              )}
 
-                <div className="flex justify-between">
-                  <Button
+              {question.question_type === 'textarea' && (
+                <div className="form-control">
+                  <textarea
+                    className="textarea textarea-bordered h-32"
+                    value={answer as string}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    placeholder="Enter your answer"
+                  />
+                </div>
+              )}
+
+              {question.question_type === 'email' && (
+                <div className="form-control">
+                  <input
+                    type="email"
+                    className="input input-bordered w-full"
+                    value={answer as string}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    placeholder="Enter your email"
+                  />
+                </div>
+              )}
+
+              {question.question_type === 'number' && (
+                <div className="form-control">
+                  <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={answer as string}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    placeholder="Enter a number"
+                  />
+                </div>
+              )}
+
+              {question.question_type === 'multiple_choice' && question.options && (
+                <div className="form-control">
+                  <div className="space-y-3">
+                    {question.options.map((option, index) => (
+                      <label key={index} className="label cursor-pointer justify-start gap-3">
+                        <input
+                          type="radio"
+                          name="answer"
+                          className="radio radio-primary"
+                          value={option}
+                          checked={answer === option}
+                          onChange={(e) => setAnswer(e.target.value)}
+                        />
+                        <span className="label-text">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {question.question_type === 'checkbox' && question.options && (
+                <div className="form-control">
+                  <div className="space-y-3">
+                    {question.options.map((option, index) => (
+                      <label key={index} className="label cursor-pointer justify-start gap-3">
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-primary"
+                          value={option}
+                          checked={(answer as string[]).includes(option)}
+                          onChange={() => handleCheckboxChange(option)}
+                        />
+                        <span className="label-text">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation */}
+              <div className="flex justify-between pt-6">
+                {questionIndex > 0 ? (
+                  <button
                     type="button"
-                    variant="outline"
-                    onClick={() => window.history.back()}
-                    disabled={questionIndex === 0}
+                    className="btn btn-outline"
+                                         onClick={() => {
+                       setData('answer', Array.isArray(answer) ? answer.join(', ') : answer);
+                       post(`/survey/${token}/response/${responseId}/question/${questionIndex - 1}/answer`, {
+                         preserveScroll: true,
+                       });
+                     }}
                   >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
                     Previous
-                  </Button>
-                  <Button type="submit" disabled={processing}>
-                    {processing ? 'Saving...' : questionIndex === totalQuestions - 1 ? 'Complete Survey' : 'Next'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                  </button>
+                ) : (
+                  <div></div>
+                )}
 
-          {/* Survey Info */}
-          <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-900">{survey.title}</h2>
-            {survey.description && (
-              <p className="text-sm text-gray-600 mt-1">{survey.description}</p>
-            )}
+                <button type="submit" className="btn btn-primary" disabled={processing}>
+                  {processing ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Saving...
+                    </>
+                  ) : questionIndex === survey.questions_count - 1 ? (
+                    <>
+                      Complete Survey
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

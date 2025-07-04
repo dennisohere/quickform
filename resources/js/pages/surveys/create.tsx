@@ -1,9 +1,6 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Plus } from 'lucide-react';
 
 export default function SurveyCreate() {
   const { data, setData, post, processing, errors } = useForm({
@@ -13,7 +10,7 @@ export default function SurveyCreate() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post(route('surveys.store'));
+    post('/surveys');
   };
 
   return (
@@ -23,58 +20,71 @@ export default function SurveyCreate() {
       <div className="container mx-auto py-8 max-w-2xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Create New Survey</h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-base-content/70 mt-2">
             Set up the basic information for your survey.
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Survey Details</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">Survey Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="title">Survey Title *</Label>
-                <Input
-                  id="title"
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Survey Title *</span>
+                </label>
+                <input
                   type="text"
+                  className={`input input-bordered w-full ${errors.title ? 'input-error' : ''}`}
                   value={data.title}
                   onChange={(e) => setData('title', e.target.value)}
                   placeholder="Enter survey title"
-                  className="mt-1"
                 />
                 {errors.title && (
-                  <p className="text-sm text-destructive mt-1">{errors.title}</p>
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.title}</span>
+                  </label>
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="description">Description</Label>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Description</span>
+                </label>
                 <textarea
-                  id="description"
+                  className={`textarea textarea-bordered h-24 ${errors.description ? 'textarea-error' : ''}`}
                   value={data.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('description', e.target.value)}
                   placeholder="Enter survey description (optional)"
-                  className="mt-1 flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  rows={4}
                 />
                 {errors.description && (
-                  <p className="text-sm text-destructive mt-1">{errors.description}</p>
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.description}</span>
+                  </label>
                 )}
               </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={processing}>
-                  {processing ? 'Creating...' : 'Create Survey'}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => window.history.back()}>
+              <div className="card-actions justify-end">
+                <button type="submit" className="btn btn-primary" disabled={processing}>
+                  {processing ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Survey
+                    </>
+                  )}
+                </button>
+                <button type="button" className="btn btn-outline" onClick={() => window.history.back()}>
                   Cancel
-                </Button>
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </>
   );

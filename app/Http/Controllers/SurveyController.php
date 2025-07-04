@@ -120,7 +120,7 @@ class SurveyController extends Controller
             $survey->generateShareToken();
         }
 
-        return back()->with('success', 
+        return back()->with('success',
             $survey->is_published ? 'Survey published successfully!' : 'Survey unpublished successfully!'
         );
     }

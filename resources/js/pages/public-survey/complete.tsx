@@ -1,8 +1,6 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Home } from 'lucide-react';
 
 interface Survey {
   id: string;
@@ -10,78 +8,54 @@ interface Survey {
   description: string | null;
 }
 
-interface Response {
-  id: string;
-  respondent_name?: string;
-  respondent_email?: string;
-  completed_at: string;
-}
-
 interface Props {
   survey: Survey;
-  response: Response;
 }
 
-export default function PublicSurveyComplete({ survey, response }: Props) {
+export default function PublicSurveyComplete({ survey }: Props) {
   return (
     <>
       <Head title="Survey Complete" />
       
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+      <div className="min-h-screen bg-gradient-to-br from-success/10 to-primary/10 flex items-center justify-center p-4">
+        <div className="card bg-base-100 shadow-2xl max-w-md w-full">
+          <div className="card-body text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-success-content" />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Thank You!</h1>
-            <p className="mt-2 text-gray-600">
-              Your response has been submitted successfully.
+            
+            <h1 className="card-title text-2xl justify-center mb-4">Survey Complete!</h1>
+            
+            <p className="text-base-content/70 mb-6">
+              Thank you for completing "{survey.title}". Your responses have been recorded successfully.
             </p>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">Survey Complete</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <h2 className="text-lg font-semibold text-gray-900">{survey.title}</h2>
-                {survey.description && (
-                  <p className="text-sm text-gray-600 mt-1">{survey.description}</p>
-                )}
+            
+            {survey.description && (
+              <div className="alert alert-info mb-6">
+                <div className="text-sm">{survey.description}</div>
               </div>
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">
-                  <p><strong>Completed:</strong> {new Date(response.completed_at).toLocaleString()}</p>
-                  {response.respondent_name && (
-                    <p><strong>Name:</strong> {response.respondent_name}</p>
-                  )}
-                  {response.respondent_email && (
-                    <p><strong>Email:</strong> {response.respondent_email}</p>
-                  )}
-                </div>
+            )}
+            
+            <div className="card bg-base-200 shadow-sm mb-6">
+              <div className="card-body">
+                <h3 className="font-semibold mb-2">What happens next?</h3>
+                <ul className="text-sm text-base-content/70 space-y-1 text-left">
+                  <li>• Your responses are securely stored</li>
+                  <li>• The survey administrator will review your answers</li>
+                  <li>• You may close this window</li>
+                </ul>
               </div>
-
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-4">
-                  Thank you for taking the time to complete this survey. Your feedback is valuable to us.
-                </p>
-                <Button
-                  onClick={() => window.close()}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Close
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              Your responses have been recorded and will be kept confidential.
-            </p>
+            </div>
+            
+            <button 
+              className="btn btn-primary w-full"
+              onClick={() => window.close()}
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Close Window
+            </button>
           </div>
         </div>
       </div>

@@ -1,43 +1,28 @@
 import React, { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X } from 'lucide-react';
 
-interface Survey {
-  id: string;
-  title: string;
-}
-
 interface Props {
-  survey: Survey;
+  surveyId: string;
+  surveyTitle: string;
 }
 
-export default function QuestionCreate({ survey }: Props) {
-  const [options, setOptions] = useState<string[]>(['']);
-  const [questionType, setQuestionType] = useState<string>('text');
+export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
+  const [questionType, setQuestionType] = useState('text');
+  const [options, setOptions] = useState(['']);
 
   const { data, setData, post, processing, errors } = useForm({
     question_text: '',
     question_type: 'text',
-    options: [] as string[],
     is_required: false as boolean,
+    options: [] as string[],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Filter out empty options
-    const filteredOptions = questionType === 'text' || questionType === 'textarea' || questionType === 'number' || questionType === 'email' || questionType === 'date' 
-      ? [] 
-      : options.filter(option => option.trim() !== '');
-    
-    setData('options', filteredOptions);
-    post(route('surveys.questions.store', survey.id));
+    setData('question_type', questionType);
+    setData('options', questionType === 'multiple_choice' || questionType === 'checkbox' ? options.filter(opt => opt.trim()) : []);
+    post(`/surveys/${surveyId}/questions`);
   };
 
   const addOption = () => {
@@ -45,8 +30,7 @@ export default function QuestionCreate({ survey }: Props) {
   };
 
   const removeOption = (index: number) => {
-    const newOptions = options.filter((_, i) => i !== index);
-    setOptions(newOptions);
+    setOptions(options.filter((_, i) => i !== index));
   };
 
   const updateOption = (index: number, value: string) => {
@@ -55,8 +39,6 @@ export default function QuestionCreate({ survey }: Props) {
     setOptions(newOptions);
   };
 
-  const needsOptions = ['radio', 'checkbox', 'select'].includes(questionType);
-
   return (
     <>
       <Head title="Add Question" />
@@ -64,124 +46,122 @@ export default function QuestionCreate({ survey }: Props) {
       <div className="container mx-auto py-8 max-w-2xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Add Question</h1>
-          <p className="text-muted-foreground mt-2">
-            Add a new question to "{survey.title}"
+          <p className="text-base-content/70 mt-2">
+            Add a new question to "{surveyTitle}"
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Question Details</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">Question Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="question_text">Question Text *</Label>
-                <Input
-                  id="question_text"
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Question Text *</span>
+                </label>
+                <input
                   type="text"
+                  className={`input input-bordered w-full ${errors.question_text ? 'input-error' : ''}`}
                   value={data.question_text}
                   onChange={(e) => setData('question_text', e.target.value)}
                   placeholder="Enter your question"
-                  className="mt-1"
                 />
                 {errors.question_text && (
-                  <p className="text-sm text-destructive mt-1">{errors.question_text}</p>
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.question_text}</span>
+                  </label>
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="question_type">Question Type *</Label>
-                <Select
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Question Type *</span>
+                </label>
+                <select
+                  className="select select-bordered w-full"
                   value={questionType}
-                  onValueChange={(value) => {
-                    setQuestionType(value);
-                    setData('question_type', value);
-                    if (!['radio', 'checkbox', 'select'].includes(value)) {
-                      setOptions(['']);
-                    }
-                  }}
+                  onChange={(e) => setQuestionType(e.target.value)}
                 >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select question type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text">Short Text</SelectItem>
-                    <SelectItem value="textarea">Long Text</SelectItem>
-                    <SelectItem value="radio">Multiple Choice (Single Answer)</SelectItem>
-                    <SelectItem value="checkbox">Multiple Choice (Multiple Answers)</SelectItem>
-                    <SelectItem value="select">Dropdown</SelectItem>
-                    <SelectItem value="number">Number</SelectItem>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="date">Date</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.question_type && (
-                  <p className="text-sm text-destructive mt-1">{errors.question_type}</p>
-                )}
+                  <option value="text">Text Input</option>
+                  <option value="textarea">Long Text</option>
+                  <option value="multiple_choice">Multiple Choice</option>
+                  <option value="checkbox">Checkbox</option>
+                  <option value="email">Email</option>
+                  <option value="number">Number</option>
+                </select>
               </div>
 
-              {needsOptions && (
-                <div>
-                  <Label>Options *</Label>
-                  <div className="space-y-2 mt-1">
+              {(questionType === 'multiple_choice' || questionType === 'checkbox') && (
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Options *</span>
+                  </label>
+                  <div className="space-y-2">
                     {options.map((option, index) => (
                       <div key={index} className="flex gap-2">
-                        <Input
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
                           value={option}
                           onChange={(e) => updateOption(index, e.target.value)}
                           placeholder={`Option ${index + 1}`}
                         />
                         {options.length > 1 && (
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
-                            size="sm"
+                            className="btn btn-outline btn-square btn-sm"
                             onClick={() => removeOption(index)}
                           >
                             <X className="w-4 h-4" />
-                          </Button>
+                          </button>
                         )}
                       </div>
                     ))}
-                    <Button
+                    <button
                       type="button"
-                      variant="outline"
-                      size="sm"
+                      className="btn btn-outline btn-sm"
                       onClick={addOption}
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add Option
-                    </Button>
+                    </button>
                   </div>
-                  {errors.options && (
-                    <p className="text-sm text-destructive mt-1">{errors.options}</p>
-                  )}
                 </div>
               )}
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_required"
-                  checked={data.is_required}
-                  onChange={(e) => setData('is_required', e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                <Label htmlFor="is_required">This question is required</Label>
+              <div className="form-control">
+                <label className="label cursor-pointer">
+                  <span className="label-text">Required Question</span>
+                  <input
+                    type="checkbox"
+                    className="toggle toggle-primary"
+                    checked={data.is_required}
+                    onChange={(e) => setData('is_required', e.target.checked)}
+                  />
+                </label>
               </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={processing}>
-                  {processing ? 'Adding...' : 'Add Question'}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => window.history.back()}>
+              <div className="card-actions justify-end">
+                <button type="submit" className="btn btn-primary" disabled={processing}>
+                  {processing ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Adding Question...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Question
+                    </>
+                  )}
+                </button>
+                <button type="button" className="btn btn-outline" onClick={() => window.history.back()}>
                   Cancel
-                </Button>
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </>
   );
