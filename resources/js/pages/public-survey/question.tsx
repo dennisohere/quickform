@@ -79,32 +79,32 @@ export default function PublicSurveyQuestion({
       <Head title={`Question ${questionIndex + 1} - ${survey.title}`} />
       
       <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4">
-        <div className="card bg-base-100 shadow-2xl max-w-2xl w-full">
-          <div className="card-body">
+        <div className="d-card bg-base-100 shadow-2xl max-w-2xl w-full">
+          <div className="d-card-body">
             {/* Progress */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Question {questionIndex + 1} of {survey.questions_count}</span>
                 <span className="text-sm text-base-content/70">{Math.round(progress)}%</span>
               </div>
-                             <progress className="progress progress-primary w-full" value={progress} max="100"></progress>
+              <progress className="d-progress d-progress-primary w-full" value={progress} max="100"></progress>
             </div>
 
             {/* Question */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-4">{question.question_text}</h2>
               {question.is_required && (
-                <div className="badge badge-error mb-4">Required</div>
+                <div className="d-badge d-badge-error mb-4">Required</div>
               )}
             </div>
 
             {/* Answer Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               {question.question_type === 'text' && (
-                <div className="form-control">
+                <div className="d-form-control">
                   <input
                     type="text"
-                    className="input input-bordered w-full"
+                    className="d-input d-input-bordered w-full"
                     value={answer as string}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter your answer"
@@ -113,9 +113,9 @@ export default function PublicSurveyQuestion({
               )}
 
               {question.question_type === 'textarea' && (
-                <div className="form-control">
+                <div className="d-form-control">
                   <textarea
-                    className="textarea textarea-bordered h-32"
+                    className="d-textarea d-textarea-bordered h-32"
                     value={answer as string}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter your answer"
@@ -124,10 +124,10 @@ export default function PublicSurveyQuestion({
               )}
 
               {question.question_type === 'email' && (
-                <div className="form-control">
+                <div className="d-form-control">
                   <input
                     type="email"
-                    className="input input-bordered w-full"
+                    className="d-input d-input-bordered w-full"
                     value={answer as string}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter your email"
@@ -136,10 +136,10 @@ export default function PublicSurveyQuestion({
               )}
 
               {question.question_type === 'number' && (
-                <div className="form-control">
+                <div className="d-form-control">
                   <input
                     type="number"
-                    className="input input-bordered w-full"
+                    className="d-input d-input-bordered w-full"
                     value={answer as string}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter a number"
@@ -148,19 +148,19 @@ export default function PublicSurveyQuestion({
               )}
 
               {question.question_type === 'multiple_choice' && question.options && (
-                <div className="form-control">
+                <div className="d-form-control">
                   <div className="space-y-3">
                     {question.options.map((option, index) => (
-                      <label key={index} className="label cursor-pointer justify-start gap-3">
+                      <label key={index} className="d-label cursor-pointer justify-start gap-3">
                         <input
                           type="radio"
                           name="answer"
-                          className="radio radio-primary"
+                          className="d-radio d-radio-primary"
                           value={option}
                           checked={answer === option}
                           onChange={(e) => setAnswer(e.target.value)}
                         />
-                        <span className="label-text">{option}</span>
+                        <span className="d-label-text">{option}</span>
                       </label>
                     ))}
                   </div>
@@ -168,18 +168,18 @@ export default function PublicSurveyQuestion({
               )}
 
               {question.question_type === 'checkbox' && question.options && (
-                <div className="form-control">
+                <div className="d-form-control">
                   <div className="space-y-3">
                     {question.options.map((option, index) => (
-                      <label key={index} className="label cursor-pointer justify-start gap-3">
+                      <label key={index} className="d-label cursor-pointer justify-start gap-3">
                         <input
                           type="checkbox"
-                          className="checkbox checkbox-primary"
+                          className="d-checkbox d-checkbox-primary"
                           value={option}
                           checked={(answer as string[]).includes(option)}
                           onChange={() => handleCheckboxChange(option)}
                         />
-                        <span className="label-text">{option}</span>
+                        <span className="d-label-text">{option}</span>
                       </label>
                     ))}
                   </div>
@@ -191,13 +191,13 @@ export default function PublicSurveyQuestion({
                 {questionIndex > 0 ? (
                   <button
                     type="button"
-                    className="btn btn-outline"
-                                         onClick={() => {
-                       setData('answer', Array.isArray(answer) ? answer.join(', ') : answer);
-                       post(`/survey/${token}/response/${responseId}/question/${questionIndex - 1}/answer`, {
-                         preserveScroll: true,
-                       });
-                     }}
+                    className="d-btn d-btn-outline"
+                    onClick={() => {
+                      setData('answer', Array.isArray(answer) ? answer.join(', ') : answer);
+                      post(`/survey/${token}/response/${responseId}/question/${questionIndex - 1}/answer`, {
+                        preserveScroll: true,
+                      });
+                    }}
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Previous
@@ -206,10 +206,10 @@ export default function PublicSurveyQuestion({
                   <div></div>
                 )}
 
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+                <button type="submit" className="d-btn d-btn-primary" disabled={processing}>
                   {processing ? (
                     <>
-                      <span className="loading loading-spinner loading-sm"></span>
+                      <span className="d-loading d-loading-spinner d-loading-sm"></span>
                       Saving...
                     </>
                   ) : questionIndex === survey.questions_count - 1 ? (

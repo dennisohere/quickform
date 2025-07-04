@@ -25,50 +25,50 @@ export default function SurveyCreate() {
           </p>
         </div>
 
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title">Survey Details</h2>
+        <div className="d-card bg-base-100 shadow-xl">
+          <div className="d-card-body">
+            <h2 className="d-card-title">Survey Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Survey Title *</span>
+              <div className="d-form-control">
+                <label className="d-label">
+                  <span className="d-label-text">Survey Title *</span>
                 </label>
                 <input
                   type="text"
-                  className={`input input-bordered w-full ${errors.title ? 'input-error' : ''}`}
+                  className={`d-input d-input-bordered w-full ${errors.title ? 'd-input-error' : ''}`}
                   value={data.title}
                   onChange={(e) => setData('title', e.target.value)}
                   placeholder="Enter survey title"
                 />
                 {errors.title && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.title}</span>
+                  <label className="d-label">
+                    <span className="d-label-text-alt text-error">{errors.title}</span>
                   </label>
                 )}
               </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Description</span>
+              <div className="d-form-control">
+                <label className="d-label">
+                  <span className="d-label-text">Description</span>
                 </label>
                 <textarea
-                  className={`textarea textarea-bordered h-24 ${errors.description ? 'textarea-error' : ''}`}
+                  className={`d-textarea d-textarea-bordered h-24 ${errors.description ? 'd-textarea-error' : ''}`}
                   value={data.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('description', e.target.value)}
                   placeholder="Enter survey description (optional)"
                 />
                 {errors.description && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.description}</span>
+                  <label className="d-label">
+                    <span className="d-label-text-alt text-error">{errors.description}</span>
                   </label>
                 )}
               </div>
 
-              <div className="card-actions justify-end">
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+              <div className="d-card-actions justify-end">
+                <button type="submit" className="d-btn d-btn-primary" disabled={processing}>
                   {processing ? (
                     <>
-                      <span className="loading loading-spinner loading-sm"></span>
+                      <span className="d-loading d-loading-spinner d-loading-sm"></span>
                       Creating...
                     </>
                   ) : (
@@ -78,7 +78,7 @@ export default function SurveyCreate() {
                     </>
                   )}
                 </button>
-                <button type="button" className="btn btn-outline" onClick={() => window.history.back()}>
+                <button type="button" className="d-btn d-btn-outline" onClick={() => window.history.back()}>
                   Cancel
                 </button>
               </div>

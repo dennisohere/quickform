@@ -51,34 +51,34 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
           </p>
         </div>
 
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title">Question Details</h2>
+        <div className="d-card bg-base-100 shadow-xl">
+          <div className="d-card-body">
+            <h2 className="d-card-title">Question Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Question Text *</span>
+              <div className="d-form-control">
+                <label className="d-label">
+                  <span className="d-label-text">Question Text *</span>
                 </label>
                 <input
                   type="text"
-                  className={`input input-bordered w-full ${errors.question_text ? 'input-error' : ''}`}
+                  className={`d-input d-input-bordered w-full ${errors.question_text ? 'd-input-error' : ''}`}
                   value={data.question_text}
                   onChange={(e) => setData('question_text', e.target.value)}
                   placeholder="Enter your question"
                 />
                 {errors.question_text && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.question_text}</span>
+                  <label className="d-label">
+                    <span className="d-label-text-alt text-error">{errors.question_text}</span>
                   </label>
                 )}
               </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Question Type *</span>
+              <div className="d-form-control">
+                <label className="d-label">
+                  <span className="d-label-text">Question Type *</span>
                 </label>
                 <select
-                  className="select select-bordered w-full"
+                  className="d-select d-select-bordered w-full"
                   value={questionType}
                   onChange={(e) => setQuestionType(e.target.value)}
                 >
@@ -92,16 +92,16 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
               </div>
 
               {(questionType === 'multiple_choice' || questionType === 'checkbox') && (
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Options *</span>
+                <div className="d-form-control">
+                  <label className="d-label">
+                    <span className="d-label-text">Options *</span>
                   </label>
                   <div className="space-y-2">
                     {options.map((option, index) => (
                       <div key={index} className="flex gap-2">
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="d-input d-input-bordered flex-1"
                           value={option}
                           onChange={(e) => updateOption(index, e.target.value)}
                           placeholder={`Option ${index + 1}`}
@@ -109,7 +109,7 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                         {options.length > 1 && (
                           <button
                             type="button"
-                            className="btn btn-outline btn-square btn-sm"
+                            className="d-btn d-btn-outline d-btn-square d-btn-sm"
                             onClick={() => removeOption(index)}
                           >
                             <X className="w-4 h-4" />
@@ -119,7 +119,7 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                     ))}
                     <button
                       type="button"
-                      className="btn btn-outline btn-sm"
+                      className="d-btn d-btn-outline d-btn-sm"
                       onClick={addOption}
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -129,23 +129,23 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                 </div>
               )}
 
-              <div className="form-control">
-                <label className="label cursor-pointer">
-                  <span className="label-text">Required Question</span>
+              <div className="d-form-control">
+                <label className="d-label cursor-pointer">
+                  <span className="d-label-text">Required Question</span>
                   <input
                     type="checkbox"
-                    className="toggle toggle-primary"
+                    className="d-toggle d-toggle-primary"
                     checked={data.is_required}
                     onChange={(e) => setData('is_required', e.target.checked)}
                   />
                 </label>
               </div>
 
-              <div className="card-actions justify-end">
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+              <div className="d-card-actions justify-end">
+                <button type="submit" className="d-btn d-btn-primary" disabled={processing}>
                   {processing ? (
                     <>
-                      <span className="loading loading-spinner loading-sm"></span>
+                      <span className="d-loading d-loading-spinner d-loading-sm"></span>
                       Adding Question...
                     </>
                   ) : (
@@ -155,7 +155,7 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                     </>
                   )}
                 </button>
-                <button type="button" className="btn btn-outline" onClick={() => window.history.back()}>
+                <button type="button" className="d-btn d-btn-outline" onClick={() => window.history.back()}>
                   Cancel
                 </button>
               </div>

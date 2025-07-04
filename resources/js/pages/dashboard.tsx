@@ -19,7 +19,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold">Dashboard</h1>
                     <Link href="/surveys/create">
-                        <button className="btn btn-primary">
+                        <button className="d-btn d-btn-primary">
                             <Plus className="w-4 h-4 mr-2" />
                             Create Survey
                         </button>
@@ -27,47 +27,47 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-3">
-                    <div className="stat bg-base-100 shadow">
-                        <div className="stat-figure text-primary">
+                    <div className="d-stat bg-base-100 shadow">
+                        <div className="d-stat-figure text-primary">
                             <FileText className="w-8 h-8" />
                         </div>
-                        <div className="stat-title">Total Surveys</div>
-                        <div className="stat-value text-primary">0</div>
-                        <div className="stat-desc">Surveys created</div>
+                        <div className="d-stat-title">Total Surveys</div>
+                        <div className="d-stat-value text-primary">0</div>
+                        <div className="d-stat-desc">Surveys created</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow">
-                        <div className="stat-figure text-secondary">
+                    <div className="d-stat bg-base-100 shadow">
+                        <div className="d-stat-figure text-secondary">
                             <Users className="w-8 h-8" />
                         </div>
-                        <div className="stat-title">Total Responses</div>
-                        <div className="stat-value text-secondary">0</div>
-                        <div className="stat-desc">Responses collected</div>
+                        <div className="d-stat-title">Total Responses</div>
+                        <div className="d-stat-value text-secondary">0</div>
+                        <div className="d-stat-desc">Responses collected</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow">
-                        <div className="stat-figure text-accent">
+                    <div className="d-stat bg-base-100 shadow">
+                        <div className="d-stat-figure text-accent">
                             <BarChart3 className="w-8 h-8" />
                         </div>
-                        <div className="stat-title">Active Surveys</div>
-                        <div className="stat-value text-accent">0</div>
-                        <div className="stat-desc">Published surveys</div>
+                        <div className="d-stat-title">Active Surveys</div>
+                        <div className="d-stat-value text-accent">0</div>
+                        <div className="d-stat-desc">Published surveys</div>
                     </div>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
-                    <div className="card bg-base-100 shadow-xl">
-                        <div className="card-body">
-                            <h2 className="card-title">Quick Actions</h2>
+                    <div className="d-card bg-base-100 shadow-xl">
+                        <div className="d-card-body">
+                            <h2 className="d-card-title">Quick Actions</h2>
                             <div className="space-y-4">
                                 <Link href="/surveys">
-                                    <button className="btn btn-outline w-full justify-start">
+                                    <button className="d-btn d-btn-outline w-full justify-start">
                                         <FileText className="w-4 h-4 mr-2" />
                                         View All Surveys
                                     </button>
                                 </Link>
                                 <Link href="/surveys/create">
-                                    <button className="btn btn-outline w-full justify-start">
+                                    <button className="d-btn d-btn-outline w-full justify-start">
                                         <Plus className="w-4 h-4 mr-2" />
                                         Create New Survey
                                     </button>
@@ -76,9 +76,9 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="card bg-base-100 shadow-xl">
-                        <div className="card-body">
-                            <h2 className="card-title">Getting Started</h2>
+                    <div className="d-card bg-base-100 shadow-xl">
+                        <div className="d-card-body">
+                            <h2 className="d-card-title">Getting Started</h2>
                             <div className="space-y-3">
                                 <div className="text-sm">
                                     <p className="font-medium">1. Create a Survey</p>

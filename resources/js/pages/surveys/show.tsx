@@ -70,7 +70,7 @@ export default function SurveyShow({ survey }: Props) {
               <p className="text-base-content/70 mt-2">{survey.description}</p>
             )}
             <div className="flex items-center gap-2 mt-4">
-              <div className={`badge ${survey.is_published ? 'badge-success' : 'badge-neutral'}`}>
+              <div className={`d-badge ${survey.is_published ? 'd-badge-success' : 'd-badge-neutral'}`}>
                 {survey.is_published ? 'Published' : 'Draft'}
               </div>
               <span className="text-sm text-base-content/70">
@@ -80,13 +80,13 @@ export default function SurveyShow({ survey }: Props) {
           </div>
           <div className="flex gap-2">
             <Link href={`/surveys/${survey.id}/edit`}>
-              <button className="btn btn-outline">
+              <button className="d-btn d-btn-outline">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Survey
               </button>
             </Link>
             <button
-              className={`btn ${survey.is_published ? 'btn-outline' : 'btn-primary'}`}
+              className={`d-btn ${survey.is_published ? 'd-btn-outline' : 'd-btn-primary'}`}
               onClick={togglePublish}
             >
               {survey.is_published ? 'Unpublish' : 'Publish'}
@@ -97,12 +97,12 @@ export default function SurveyShow({ survey }: Props) {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Questions Section */}
           <div className="lg:col-span-2">
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
+            <div className="d-card bg-base-100 shadow-xl">
+              <div className="d-card-body">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="card-title">Questions ({survey.questions.length})</h2>
+                  <h2 className="d-card-title">Questions ({survey.questions.length})</h2>
                   <Link href={`/surveys/${survey.id}/questions/create`}>
-                    <button className="btn btn-primary btn-sm">
+                    <button className="d-btn d-btn-primary d-btn-sm">
                       <Plus className="w-4 h-4 mr-2" />
                       Add Question
                     </button>
@@ -113,7 +113,7 @@ export default function SurveyShow({ survey }: Props) {
                   <div className="text-center py-8">
                     <p className="text-base-content/70 mb-4">No questions yet</p>
                     <Link href={`/surveys/${survey.id}/questions/create`}>
-                      <button className="btn btn-primary">
+                      <button className="d-btn d-btn-primary">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Your First Question
                       </button>
@@ -124,9 +124,9 @@ export default function SurveyShow({ survey }: Props) {
                     {survey.questions.map((question, index) => (
                       <div
                         key={question.id}
-                        className="card bg-base-200 shadow-sm"
+                        className="d-card bg-base-200 shadow-sm"
                       >
-                        <div className="card-body">
+                        <div className="d-card-body">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
@@ -135,7 +135,7 @@ export default function SurveyShow({ survey }: Props) {
                                 </span>
                                 <span className="font-medium">{question.question_text}</span>
                                 {question.is_required && (
-                                  <div className="badge badge-error badge-xs">Required</div>
+                                  <div className="d-badge d-badge-error d-badge-xs">Required</div>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 text-sm text-base-content/70">
@@ -147,7 +147,7 @@ export default function SurveyShow({ survey }: Props) {
                             </div>
                             <div className="flex gap-2">
                               <Link href={`/surveys/${survey.id}/questions/${question.id}/edit`}>
-                                <button className="btn btn-outline btn-sm">
+                                <button className="d-btn d-btn-outline d-btn-sm">
                                   <Edit className="w-4 h-4" />
                                 </button>
                               </Link>
@@ -166,9 +166,9 @@ export default function SurveyShow({ survey }: Props) {
           <div className="space-y-6">
             {/* Share Section */}
             {survey.is_published && (
-              <div className="card bg-base-100 shadow-xl">
-                <div className="card-body">
-                  <h2 className="card-title">Share Survey</h2>
+              <div className="d-card bg-base-100 shadow-xl">
+                <div className="d-card-body">
+                  <h2 className="d-card-title">Share Survey</h2>
                   <div className="space-y-4">
                     {survey.share_token ? (
                       <>
@@ -179,17 +179,17 @@ export default function SurveyShow({ survey }: Props) {
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={copyShareLink} className="btn btn-primary flex-1">
+                          <button onClick={copyShareLink} className="d-btn d-btn-primary flex-1">
                             <Copy className="w-4 h-4 mr-2" />
                             Copy Link
                           </button>
-                          <button className="btn btn-outline" onClick={regenerateToken}>
+                          <button className="d-btn d-btn-outline" onClick={regenerateToken}>
                             <ArrowUpDown className="w-4 h-4" />
                           </button>
                         </div>
                       </>
                     ) : (
-                      <button onClick={regenerateToken} className="btn btn-primary w-full">
+                      <button onClick={regenerateToken} className="d-btn d-btn-primary w-full">
                         Generate Share Link
                       </button>
                     )}
@@ -199,13 +199,13 @@ export default function SurveyShow({ survey }: Props) {
             )}
 
             {/* Responses Section */}
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
+            <div className="d-card bg-base-100 shadow-xl">
+              <div className="d-card-body">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="card-title">Responses ({survey.responses.length})</h2>
+                  <h2 className="d-card-title">Responses ({survey.responses.length})</h2>
                   {survey.responses.length > 0 && (
                     <Link href={`/surveys/${survey.id}/responses`}>
-                      <button className="btn btn-outline btn-sm">
+                      <button className="d-btn d-btn-outline d-btn-sm">
                         <Eye className="w-4 h-4 mr-1" />
                         View All
                       </button>
@@ -229,7 +229,7 @@ export default function SurveyShow({ survey }: Props) {
                             {new Date(response.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <div className={`badge ${response.is_completed ? 'badge-success' : 'badge-neutral'}`}>
+                        <div className={`d-badge ${response.is_completed ? 'd-badge-success' : 'd-badge-neutral'}`}>
                           {response.is_completed ? 'Completed' : 'In Progress'}
                         </div>
                       </div>
@@ -245,11 +245,11 @@ export default function SurveyShow({ survey }: Props) {
             </div>
 
             {/* Actions */}
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title">Actions</h2>
+            <div className="d-card bg-base-100 shadow-xl">
+              <div className="d-card-body">
+                <h2 className="d-card-title">Actions</h2>
                 <button
-                  className="btn btn-outline btn-error w-full"
+                  className="d-btn d-btn-outline d-btn-error w-full"
                   onClick={deleteSurvey}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
