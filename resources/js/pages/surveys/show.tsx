@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Edit, Copy, Eye, Trash2, ArrowUpDown } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import SurveyFormModal from '@/components/survey-form-modal';
 
 interface Question {
   id: string;
@@ -38,6 +39,8 @@ interface Props {
 }
 
 export default function SurveyShow({ survey }: Props) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'Dashboard',
@@ -91,6 +94,14 @@ export default function SurveyShow({ survey }: Props) {
     }
   };
 
+  const handleEditSurvey = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+  };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={survey.title} />
@@ -112,12 +123,13 @@ export default function SurveyShow({ survey }: Props) {
             </div>
           </div>
           <div className="flex gap-2">
-            <Link href={`/surveys/${survey.id}/edit`}>
-              <button className="d-btn d-btn-outline">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Survey
-              </button>
-            </Link>
+            <button 
+              className="d-btn d-btn-outline"
+              onClick={handleEditSurvey}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Survey
+            </button>
             <button
               className={`d-btn ${survey.is_published ? 'd-btn-outline' : 'd-btn-primary'}`}
               onClick={togglePublish}
@@ -292,6 +304,14 @@ export default function SurveyShow({ survey }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Edit Survey Modal */}
+        <SurveyFormModal
+          survey={survey}
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          mode="edit"
+        />
       </div>
     </AppLayout>
   );
