@@ -111,10 +111,11 @@ class AnalyticsController extends Controller
                 if (in_array($question->question_type, ['radio', 'select', 'checkbox'])) {
                     $options = $question->options ?? [];
                     $optionCounts = [];
+                    $questionType = $question->question_type; // Store the question type in a local variable
                     
                     foreach ($options as $option) {
-                        $count = $answers->filter(function ($answer) use ($option) {
-                            if ($question->question_type === 'checkbox') {
+                        $count = $answers->filter(function ($answer) use ($option, $questionType) {
+                            if ($questionType === 'checkbox') {
                                 return in_array($option, json_decode($answer, true) ?? []);
                             }
                             return $answer === $option;
