@@ -158,9 +158,9 @@ class AnalyticsController extends Controller
                 'completionRate' => $completionRate,
                 'respondentStats' => $respondentStats,
             ],
-            'responseTrends' => $responseTrends,
-            'questionAnalytics' => $questionAnalytics,
-            'recentResponses' => $recentResponses,
+            'responseTrends' => $responseTrends->toArray(),
+            'questionAnalytics' => $questionAnalytics->toArray(),
+            'recentResponses' => $recentResponses->toArray(),
         ]);
     }
 }
