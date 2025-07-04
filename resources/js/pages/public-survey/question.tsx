@@ -26,13 +26,13 @@ interface Props {
   previousAnswer?: string | string[];
 }
 
-export default function PublicSurveyQuestion({ 
-  survey, 
-  question, 
-  questionIndex, 
-  responseId, 
+export default function PublicSurveyQuestion({
+  survey,
+  question,
+  questionIndex,
+  responseId,
   token,
-  previousAnswer 
+  previousAnswer
 }: Props) {
   const [answer, setAnswer] = useState<string | string[]>(
     previousAnswer || (question.question_type === 'checkbox' ? [] : '')
@@ -44,7 +44,7 @@ export default function PublicSurveyQuestion({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (question.is_required) {
       if (question.question_type === 'checkbox') {
         if ((answer as string[]).length === 0) {
@@ -77,7 +77,7 @@ export default function PublicSurveyQuestion({
   return (
     <>
       <Head title={`Question ${questionIndex + 1} - ${survey.title}`} />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4">
         <div className="d-card bg-base-100 shadow-2xl max-w-2xl w-full">
           <div className="d-card-body">
@@ -117,7 +117,7 @@ export default function PublicSurveyQuestion({
                 <fieldset className="d-fieldset">
                   <legend className="d-fieldset-legend">Your Answer</legend>
                   <textarea
-                    className="d-textarea d-textarea-bordered h-32"
+                    className="d-textarea w-full d-textarea-bordered h-32"
                     value={answer as string}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter your answer"
@@ -277,4 +277,4 @@ export default function PublicSurveyQuestion({
       </div>
     </>
   );
-} 
+}

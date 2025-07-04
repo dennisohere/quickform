@@ -43,6 +43,9 @@ class PublicSurveyController extends Controller
     {
         $survey = Survey::where('share_token', $token)
             ->where('is_published', true)
+            ->with(['questions' => function ($query) {
+                $query->orderBy('order');
+            }])
             ->firstOrFail();
 
         $validated = $request->validate([
@@ -52,17 +55,27 @@ class PublicSurveyController extends Controller
 
         $response = $survey->responses()->create($validated);
 
+        // Get the first question ID
+        $firstQuestion = $survey->questions->first();
+        
+        if (!$firstQuestion) {
+            return redirect()->route('public.survey.complete', [
+                'token' => $token,
+                'responseId' => $response->id,
+            ]);
+        }
+
         return redirect()->route('public.survey.question', [
             'token' => $token,
             'responseId' => $response->id,
-            'questionIndex' => 0,
+            'questionId' => $firstQuestion->id,
         ]);
     }
 
     /**
      * Display a specific question for response.
      */
-    public function question(string $token, string $responseId, int $questionIndex)
+    public function question(string $token, string $responseId, string $questionId)
     {
         $survey = Survey::where('share_token', $token)
             ->where('is_published', true)
@@ -76,15 +89,19 @@ class PublicSurveyController extends Controller
             ->firstOrFail();
 
         $questions = $survey->questions;
+        $currentQuestion = $questions->where('id', $questionId)->first();
         
-        if ($questionIndex >= $questions->count()) {
+        if (!$currentQuestion) {
             return redirect()->route('public.survey.complete', [
                 'token' => $token,
                 'responseId' => $responseId,
             ]);
         }
 
-        $currentQuestion = $questions[$questionIndex];
+        // Find the current question index for progress calculation
+        $currentIndex = $questions->search(function ($question) use ($questionId) {
+            return $question->id === $questionId;
+        });
 
         return Inertia::render('public-survey/question', [
             'survey' => [
@@ -93,7 +110,7 @@ class PublicSurveyController extends Controller
                 'questions_count' => $questions->count(),
             ],
             'question' => $currentQuestion,
-            'questionIndex' => $questionIndex,
+            'questionIndex' => $currentIndex,
             'responseId' => $response->id,
             'token' => $token,
         ]);
@@ -102,18 +119,28 @@ class PublicSurveyController extends Controller
     /**
      * Store the answer for the current question and move to next.
      */
-    public function answer(Request $request, string $token, string $responseId, int $questionIndex)
+    public function answer(Request $request, string $token, string $responseId, string $questionId)
     {
         $survey = Survey::where('share_token', $token)
             ->where('is_published', true)
+            ->with(['questions' => function ($query) {
+                $query->orderBy('order');
+            }])
             ->firstOrFail();
 
         $response = Response::where('id', $responseId)
             ->where('survey_id', $survey->id)
             ->firstOrFail();
 
-        $questions = $survey->questions()->orderBy('order')->get();
-        $currentQuestion = $questions[$questionIndex];
+        $questions = $survey->questions;
+        $currentQuestion = $questions->where('id', $questionId)->first();
+
+        if (!$currentQuestion) {
+            return redirect()->route('public.survey.complete', [
+                'token' => $token,
+                'responseId' => $responseId,
+            ]);
+        }
 
         $validated = $request->validate([
             'answer' => $currentQuestion->is_required ? 'required' : 'nullable',
@@ -130,9 +157,14 @@ class PublicSurveyController extends Controller
             ]
         );
 
-        $nextQuestionIndex = $questionIndex + 1;
+        // Find the next question
+        $currentIndex = $questions->search(function ($question) use ($questionId) {
+            return $question->id === $questionId;
+        });
 
-        if ($nextQuestionIndex >= $questions->count()) {
+        $nextQuestion = $questions->get($currentIndex + 1);
+
+        if (!$nextQuestion) {
             // Mark response as completed
             $response->markAsCompleted();
 
@@ -145,7 +177,7 @@ class PublicSurveyController extends Controller
         return redirect()->route('public.survey.question', [
             'token' => $token,
             'responseId' => $responseId,
-            'questionIndex' => $nextQuestionIndex,
+            'questionId' => $nextQuestion->id,
         ]);
     }
 

@@ -22,6 +22,7 @@ interface Props {
 
 export default function SurveysIndex({ surveys }: Props) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingSurvey, setEditingSurvey] = useState<Survey | null>(null);
 
   const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -44,6 +45,14 @@ export default function SurveysIndex({ surveys }: Props) {
     if (confirm('Are you sure you want to delete this survey?')) {
       router.delete(`/surveys/${id}`);
     }
+  };
+
+  const handleEditSurvey = (survey: Survey) => {
+    setEditingSurvey(survey);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingSurvey(null);
   };
 
   return (
@@ -131,11 +140,12 @@ export default function SurveysIndex({ surveys }: Props) {
                           <Eye className="w-4 h-4" />
                         </button>
                       </Link>
-                      <Link href={`/surveys/${survey.id}/edit`}>
-                        <button className="d-btn d-btn-square d-btn-ghost d-btn-sm">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </Link>
+                      <button 
+                        className="d-btn d-btn-square d-btn-ghost d-btn-sm"
+                        onClick={() => handleEditSurvey(survey)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
                       {survey.is_published && survey.share_token && (
                         <button
                           className="d-btn d-btn-square d-btn-ghost d-btn-sm"
@@ -166,6 +176,16 @@ export default function SurveysIndex({ surveys }: Props) {
           onClose={() => setIsCreateModalOpen(false)}
           mode="create"
         />
+
+        {/* Edit Survey Modal */}
+        {editingSurvey && (
+          <SurveyFormModal
+            survey={editingSurvey}
+            isOpen={true}
+            onClose={handleCloseEditModal}
+            mode="edit"
+          />
+        )}
       </div>
     </AppLayout>
   );

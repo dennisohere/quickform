@@ -81,7 +81,7 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
               <fieldset className="d-fieldset">
                 <legend className="d-fieldset-legend">Description</legend>
                 <textarea
-                  className={`d-textarea d-textarea-bordered h-24 ${errors.description ? 'd-textarea-error' : ''}`}
+                  className={`d-textarea w-full d-textarea-bordered h-24 ${errors.description ? 'd-textarea-error' : ''}`}
                   value={data.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('description', e.target.value)}
                   placeholder="Enter survey description (optional)"

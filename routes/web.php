@@ -11,7 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Survey management routes
-    Route::resource('surveys', \App\Http\Controllers\SurveyController::class);
+    Route::resource('surveys', \App\Http\Controllers\SurveyController::class)->except(['edit']);
     Route::patch('surveys/{survey}/toggle-publish', [\App\Http\Controllers\SurveyController::class, 'togglePublish'])
         ->name('surveys.toggle-publish');
     Route::patch('surveys/{survey}/regenerate-token', [\App\Http\Controllers\SurveyController::class, 'regenerateToken'])
@@ -30,9 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::prefix('survey')->name('public.survey.')->group(function () {
     Route::get('{token}', [\App\Http\Controllers\PublicSurveyController::class, 'show'])->name('show');
     Route::post('{token}/start', [\App\Http\Controllers\PublicSurveyController::class, 'start'])->name('start');
-    Route::get('{token}/response/{responseId}/question/{questionIndex}', [\App\Http\Controllers\PublicSurveyController::class, 'question'])
+    Route::get('{token}/response/{responseId}/question/{questionId}', [\App\Http\Controllers\PublicSurveyController::class, 'question'])
         ->name('question');
-    Route::post('{token}/response/{responseId}/question/{questionIndex}/answer', [\App\Http\Controllers\PublicSurveyController::class, 'answer'])
+    Route::post('{token}/response/{responseId}/question/{questionId}/answer', [\App\Http\Controllers\PublicSurveyController::class, 'answer'])
         ->name('answer');
     Route::get('{token}/response/{responseId}/complete', [\App\Http\Controllers\PublicSurveyController::class, 'complete'])
         ->name('complete');
