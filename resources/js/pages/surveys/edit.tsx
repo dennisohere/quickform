@@ -47,7 +47,7 @@ export default function SurveyEdit({ survey }: Props) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Edit ${survey.title}`} />
-      
+
       <div className="flex h-full flex-1 flex-col gap-6 p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Edit Survey</h1>
@@ -119,4 +119,4 @@ export default function SurveyEdit({ survey }: Props) {
       </div>
     </AppLayout>
   );
-} 
+}

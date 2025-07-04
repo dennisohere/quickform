@@ -96,6 +96,21 @@ export default function PublicSurveyQuestion({
               {question.is_required && (
                 <div className="d-badge d-badge-error mb-4">Required</div>
               )}
+              
+              {/* Debug info - remove in production */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="d-alert d-alert-info mb-4">
+                  <div>
+                    <h3 className="font-bold">Debug Info</h3>
+                    <div className="text-xs">
+                      <p>Question Type: {question.question_type}</p>
+                      <p>Options: {question.options ? JSON.stringify(question.options) : 'None'}</p>
+                      <p>Survey Questions Count: {survey.questions_count}</p>
+                      <p>Question Index: {questionIndex}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Answer Form */}
@@ -182,6 +197,16 @@ export default function PublicSurveyQuestion({
                         <span className="d-label-text">{option}</span>
                       </label>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Fallback for unknown question types */}
+              {!['text', 'textarea', 'email', 'number', 'multiple_choice', 'checkbox'].includes(question.question_type) && (
+                <div className="d-alert d-alert-warning">
+                  <div>
+                    <h3 className="font-bold">Unsupported Question Type</h3>
+                    <div className="text-xs">Question type "{question.question_type}" is not supported.</div>
                   </div>
                 </div>
               )}

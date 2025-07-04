@@ -26,7 +26,12 @@ class PublicSurveyController extends Controller
             ->firstOrFail();
 
         return Inertia::render('public-survey/show', [
-            'survey' => $survey,
+            'survey' => [
+                'id' => $survey->id,
+                'title' => $survey->title,
+                'description' => $survey->description,
+                'questions_count' => $survey->questions->count(),
+            ],
             'token' => $token,
         ]);
     }
@@ -82,7 +87,11 @@ class PublicSurveyController extends Controller
         $currentQuestion = $questions[$questionIndex];
 
         return Inertia::render('public-survey/question', [
-            'survey' => $survey,
+            'survey' => [
+                'id' => $survey->id,
+                'title' => $survey->title,
+                'questions_count' => $questions->count(),
+            ],
             'question' => $currentQuestion,
             'questionIndex' => $questionIndex,
             'responseId' => $response->id,
