@@ -42,7 +42,7 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setData('question_type', questionType);
-    setData('options', questionType === 'multiple_choice' || questionType === 'checkbox' ? options.filter(opt => opt.trim()) : []);
+    setData('options', questionType === 'radio' || questionType === 'select' || questionType === 'checkbox' ? options.filter(opt => opt.trim()) : []);
     post(`/surveys/${surveyId}/questions`);
   };
 
@@ -105,14 +105,16 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                 >
                   <option value="text">Text Input</option>
                   <option value="textarea">Long Text</option>
-                  <option value="multiple_choice">Multiple Choice</option>
-                  <option value="checkbox">Checkbox</option>
+                  <option value="radio">Radio Buttons</option>
+                  <option value="select">Dropdown Select</option>
+                  <option value="checkbox">Checkboxes</option>
                   <option value="email">Email</option>
                   <option value="number">Number</option>
+                  <option value="date">Date</option>
                 </select>
               </div>
 
-              {(questionType === 'multiple_choice' || questionType === 'checkbox') && (
+              {(questionType === 'radio' || questionType === 'select' || questionType === 'checkbox') && (
                 <div className="d-form-control">
                   <label className="d-label">
                     <span className="d-label-text">Options *</span>

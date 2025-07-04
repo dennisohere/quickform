@@ -97,20 +97,7 @@ export default function PublicSurveyQuestion({
                 <div className="d-badge d-badge-error mb-4">Required</div>
               )}
               
-              {/* Debug info - remove in production */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="d-alert d-alert-info mb-4">
-                  <div>
-                    <h3 className="font-bold">Debug Info</h3>
-                    <div className="text-xs">
-                      <p>Question Type: {question.question_type}</p>
-                      <p>Options: {question.options ? JSON.stringify(question.options) : 'None'}</p>
-                      <p>Survey Questions Count: {survey.questions_count}</p>
-                      <p>Question Index: {questionIndex}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+
             </div>
 
             {/* Answer Form */}
@@ -162,7 +149,7 @@ export default function PublicSurveyQuestion({
                 </div>
               )}
 
-              {question.question_type === 'multiple_choice' && question.options && (
+              {question.question_type === 'radio' && question.options && (
                 <div className="d-form-control">
                   <div className="space-y-3">
                     {question.options.map((option, index) => (
@@ -179,6 +166,23 @@ export default function PublicSurveyQuestion({
                       </label>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {question.question_type === 'select' && question.options && (
+                <div className="d-form-control">
+                  <select
+                    className="d-select d-select-bordered w-full"
+                    value={answer as string}
+                    onChange={(e) => setAnswer(e.target.value)}
+                  >
+                    <option value="">Select an option</option>
+                    {question.options.map((option, index) => (
+                      <option key={index} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 
@@ -201,8 +205,19 @@ export default function PublicSurveyQuestion({
                 </div>
               )}
 
+              {question.question_type === 'date' && (
+                <div className="d-form-control">
+                  <input
+                    type="date"
+                    className="d-input d-input-bordered w-full"
+                    value={answer as string}
+                    onChange={(e) => setAnswer(e.target.value)}
+                  />
+                </div>
+              )}
+
               {/* Fallback for unknown question types */}
-              {!['text', 'textarea', 'email', 'number', 'multiple_choice', 'checkbox'].includes(question.question_type) && (
+              {!['text', 'textarea', 'email', 'number', 'radio', 'select', 'checkbox', 'date'].includes(question.question_type) && (
                 <div className="d-alert d-alert-warning">
                   <div>
                     <h3 className="font-bold">Unsupported Question Type</h3>
