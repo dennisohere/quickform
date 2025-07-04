@@ -144,7 +144,7 @@ class AnalyticsController extends Controller
             ->limit(10)
             ->get();
 
-        return Inertia::render('analytics/survey', [
+        $data = [
             'survey' => [
                 'id' => $survey->id,
                 'title' => $survey->title,
@@ -162,6 +162,8 @@ class AnalyticsController extends Controller
             'responseTrends' => $responseTrends->toArray(),
             'questionAnalytics' => $questionAnalytics->toArray(),
             'recentResponses' => $recentResponses->toArray(),
-        ]);
+        ];
+
+        return Inertia::render('analytics/survey', $data);
     }
 }
