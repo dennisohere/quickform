@@ -43,6 +43,8 @@ class SurveyController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'require_respondent_name' => 'boolean',
+            'require_respondent_email' => 'boolean',
         ]);
 
         $survey = auth()->user()->surveys()->create($validated);
@@ -89,6 +91,8 @@ class SurveyController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'require_respondent_name' => 'boolean',
+            'require_respondent_email' => 'boolean',
         ]);
 
         $survey->update($validated);

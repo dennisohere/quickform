@@ -31,6 +31,8 @@ class PublicSurveyController extends Controller
                 'title' => $survey->title,
                 'description' => $survey->description,
                 'questions_count' => $survey->questions->count(),
+                'require_respondent_name' => $survey->require_respondent_name,
+                'require_respondent_email' => $survey->require_respondent_email,
             ],
             'token' => $token,
         ]);
@@ -48,10 +50,21 @@ class PublicSurveyController extends Controller
             }])
             ->firstOrFail();
 
-        $validated = $request->validate([
-            'respondent_name' => 'nullable|string|max:255',
-            'respondent_email' => 'nullable|email|max:255',
-        ]);
+        $validationRules = [];
+        
+        if ($survey->require_respondent_name) {
+            $validationRules['respondent_name'] = 'required|string|max:255';
+        } else {
+            $validationRules['respondent_name'] = 'nullable|string|max:255';
+        }
+        
+        if ($survey->require_respondent_email) {
+            $validationRules['respondent_email'] = 'required|email|max:255';
+        } else {
+            $validationRules['respondent_email'] = 'nullable|email|max:255';
+        }
+
+        $validated = $request->validate($validationRules);
 
         $response = $survey->responses()->create($validated);
 

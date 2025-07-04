@@ -23,6 +23,8 @@ class Survey extends Model
         'is_published',
         'share_token',
         'created_by',
+        'require_respondent_name',
+        'require_respondent_email',
     ];
 
     /**
@@ -34,6 +36,8 @@ class Survey extends Model
     {
         return [
             'is_published' => 'boolean',
+            'require_respondent_name' => 'boolean',
+            'require_respondent_email' => 'boolean',
         ];
     }
 

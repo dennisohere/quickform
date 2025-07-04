@@ -7,6 +7,8 @@ interface Survey {
   title: string;
   description: string | null;
   questions_count: number;
+  require_respondent_name: boolean;
+  require_respondent_email: boolean;
 }
 
 interface Props {
@@ -24,6 +26,8 @@ export default function PublicSurveyShow({ survey, token }: Props) {
     e.preventDefault();
     post(`/survey/${token}/start`);
   };
+
+  const hasRequiredFields = survey.require_respondent_name || survey.require_respondent_email;
 
   return (
     <>
@@ -46,27 +50,65 @@ export default function PublicSurveyShow({ survey, token }: Props) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <fieldset className="d-fieldset">
-                <legend className="d-fieldset-legend">Your Name (Optional)</legend>
-                <input
-                  type="text"
-                  className="d-input d-input-bordered w-full"
-                  value={data.respondent_name}
-                  onChange={(e) => setData('respondent_name', e.target.value)}
-                  placeholder="Enter your name"
-                />
-              </fieldset>
+              {survey.require_respondent_name && (
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Name *</legend>
+                  <input
+                    type="text"
+                    className={`d-input d-input-bordered w-full ${errors.respondent_name ? 'd-input-error' : ''}`}
+                    value={data.respondent_name}
+                    onChange={(e) => setData('respondent_name', e.target.value)}
+                    placeholder="Enter your name"
+                    required
+                  />
+                  {errors.respondent_name && (
+                    <p className="d-label text-error">{errors.respondent_name}</p>
+                  )}
+                </fieldset>
+              )}
 
-              <fieldset className="d-fieldset">
-                <legend className="d-fieldset-legend">Your Email (Optional)</legend>
-                <input
-                  type="email"
-                  className="d-input d-input-bordered w-full"
-                  value={data.respondent_email}
-                  onChange={(e) => setData('respondent_email', e.target.value)}
-                  placeholder="Enter your email"
-                />
-              </fieldset>
+              {survey.require_respondent_email && (
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Email *</legend>
+                  <input
+                    type="email"
+                    className={`d-input d-input-bordered w-full ${errors.respondent_email ? 'd-input-error' : ''}`}
+                    value={data.respondent_email}
+                    onChange={(e) => setData('respondent_email', e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                  />
+                  {errors.respondent_email && (
+                    <p className="d-label text-error">{errors.respondent_email}</p>
+                  )}
+                </fieldset>
+              )}
+
+              {!survey.require_respondent_name && (
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Name (Optional)</legend>
+                  <input
+                    type="text"
+                    className="d-input d-input-bordered w-full"
+                    value={data.respondent_name}
+                    onChange={(e) => setData('respondent_name', e.target.value)}
+                    placeholder="Enter your name"
+                  />
+                </fieldset>
+              )}
+
+              {!survey.require_respondent_email && (
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Email (Optional)</legend>
+                  <input
+                    type="email"
+                    className="d-input d-input-bordered w-full"
+                    value={data.respondent_email}
+                    onChange={(e) => setData('respondent_email', e.target.value)}
+                    placeholder="Enter your email"
+                  />
+                </fieldset>
+              )}
 
               <button type="submit" className="d-btn d-btn-primary w-full" disabled={processing}>
                 {processing ? (
@@ -83,19 +125,23 @@ export default function PublicSurveyShow({ survey, token }: Props) {
               </button>
             </form>
 
-            <div className="d-divider">OR</div>
-            
-            <button 
-              className="d-btn d-btn-outline w-full"
-              onClick={() => {
-                setData('respondent_name', '');
-                setData('respondent_email', '');
-                post(`/survey/${token}/start`);
-              }}
-              disabled={processing}
-            >
-              Start Anonymously
-            </button>
+            {!hasRequiredFields && (
+              <>
+                <div className="d-divider">OR</div>
+                
+                <button 
+                  className="d-btn d-btn-outline w-full"
+                  onClick={() => {
+                    setData('respondent_name', '');
+                    setData('respondent_email', '');
+                    post(`/survey/${token}/start`);
+                  }}
+                  disabled={processing}
+                >
+                  Start Anonymously
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

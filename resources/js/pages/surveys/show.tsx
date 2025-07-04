@@ -30,6 +30,8 @@ interface Survey {
   is_published: boolean;
   share_token: string | null;
   created_at: string;
+  require_respondent_name: boolean;
+  require_respondent_email: boolean;
   questions: Question[];
   responses: Response[];
 }
@@ -121,6 +123,21 @@ export default function SurveyShow({ survey }: Props) {
                 Created {new Date(survey.created_at).toLocaleDateString()}
               </span>
             </div>
+            
+            {/* Respondent Requirements */}
+            {(survey.require_respondent_name || survey.require_respondent_email) && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-base-content/70 mb-2">Required from respondents:</p>
+                <div className="flex gap-2">
+                  {survey.require_respondent_name && (
+                    <div className="d-badge d-badge-info d-badge-sm">Name</div>
+                  )}
+                  {survey.require_respondent_email && (
+                    <div className="d-badge d-badge-info d-badge-sm">Email</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <button 

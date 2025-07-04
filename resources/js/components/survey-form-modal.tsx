@@ -6,6 +6,8 @@ interface Survey {
   id?: string;
   title: string;
   description: string | null;
+  require_respondent_name?: boolean;
+  require_respondent_email?: boolean;
 }
 
 interface Props {
@@ -19,6 +21,8 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
   const { data, setData, post, put, processing, errors, reset } = useForm({
     title: survey?.title || '',
     description: survey?.description || '',
+    require_respondent_name: survey?.require_respondent_name || false,
+    require_respondent_email: survey?.require_respondent_email || false,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -89,6 +93,37 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
                 {errors.description && (
                   <p className="d-label text-error">{errors.description}</p>
                 )}
+              </fieldset>
+
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Respondent Information</legend>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="require_respondent_name"
+                      className="d-checkbox d-checkbox-primary"
+                      checked={data.require_respondent_name}
+                      onChange={(e) => setData('require_respondent_name', e.target.checked)}
+                    />
+                    <label htmlFor="require_respondent_name" className="d-label cursor-pointer">
+                      <span className="d-label-text">Require respondent name</span>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="require_respondent_email"
+                      className="d-checkbox d-checkbox-primary"
+                      checked={data.require_respondent_email}
+                      onChange={(e) => setData('require_respondent_email', e.target.checked)}
+                    />
+                    <label htmlFor="require_respondent_email" className="d-label cursor-pointer">
+                      <span className="d-label-text">Require respondent email</span>
+                    </label>
+                  </div>
+                </div>
               </fieldset>
 
               <div className="d-modal-action">
