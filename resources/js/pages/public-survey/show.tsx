@@ -46,10 +46,8 @@ export default function PublicSurveyShow({ survey, token }: Props) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="d-form-control">
-                <label className="d-label">
-                  <span className="d-label-text">Your Name (Optional)</span>
-                </label>
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Your Name (Optional)</legend>
                 <input
                   type="text"
                   className="d-input d-input-bordered w-full"
@@ -57,12 +55,10 @@ export default function PublicSurveyShow({ survey, token }: Props) {
                   onChange={(e) => setData('respondent_name', e.target.value)}
                   placeholder="Enter your name"
                 />
-              </div>
+              </fieldset>
 
-              <div className="d-form-control">
-                <label className="d-label">
-                  <span className="d-label-text">Your Email (Optional)</span>
-                </label>
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Your Email (Optional)</legend>
                 <input
                   type="email"
                   className="d-input d-input-bordered w-full"
@@ -70,7 +66,7 @@ export default function PublicSurveyShow({ survey, token }: Props) {
                   onChange={(e) => setData('respondent_email', e.target.value)}
                   placeholder="Enter your email"
                 />
-              </div>
+              </fieldset>
 
               <button type="submit" className="d-btn d-btn-primary w-full" disabled={processing}>
                 {processing ? (

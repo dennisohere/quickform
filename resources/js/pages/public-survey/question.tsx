@@ -96,14 +96,13 @@ export default function PublicSurveyQuestion({
               {question.is_required && (
                 <div className="d-badge d-badge-error mb-4">Required</div>
               )}
-              
-
             </div>
 
             {/* Answer Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               {question.question_type === 'text' && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Answer</legend>
                   <input
                     type="text"
                     className="d-input d-input-bordered w-full"
@@ -111,22 +110,24 @@ export default function PublicSurveyQuestion({
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter your answer"
                   />
-                </div>
+                </fieldset>
               )}
 
               {question.question_type === 'textarea' && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Answer</legend>
                   <textarea
                     className="d-textarea d-textarea-bordered h-32"
                     value={answer as string}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter your answer"
                   />
-                </div>
+                </fieldset>
               )}
 
               {question.question_type === 'email' && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Email</legend>
                   <input
                     type="email"
                     className="d-input d-input-bordered w-full"
@@ -134,11 +135,12 @@ export default function PublicSurveyQuestion({
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter your email"
                   />
-                </div>
+                </fieldset>
               )}
 
               {question.question_type === 'number' && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Your Answer</legend>
                   <input
                     type="number"
                     className="d-input d-input-bordered w-full"
@@ -146,11 +148,12 @@ export default function PublicSurveyQuestion({
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Enter a number"
                   />
-                </div>
+                </fieldset>
               )}
 
               {question.question_type === 'radio' && question.options && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Select One Option</legend>
                   <div className="space-y-3">
                     {question.options.map((option, index) => (
                       <label key={index} className="d-label cursor-pointer justify-start gap-3">
@@ -166,11 +169,12 @@ export default function PublicSurveyQuestion({
                       </label>
                     ))}
                   </div>
-                </div>
+                </fieldset>
               )}
 
               {question.question_type === 'select' && question.options && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Select an Option</legend>
                   <select
                     className="d-select d-select-bordered w-full"
                     value={answer as string}
@@ -183,11 +187,12 @@ export default function PublicSurveyQuestion({
                       </option>
                     ))}
                   </select>
-                </div>
+                </fieldset>
               )}
 
               {question.question_type === 'checkbox' && question.options && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Select All That Apply</legend>
                   <div className="space-y-3">
                     {question.options.map((option, index) => (
                       <label key={index} className="d-label cursor-pointer justify-start gap-3">
@@ -202,18 +207,19 @@ export default function PublicSurveyQuestion({
                       </label>
                     ))}
                   </div>
-                </div>
+                </fieldset>
               )}
 
               {question.question_type === 'date' && (
-                <div className="d-form-control">
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Select Date</legend>
                   <input
                     type="date"
                     className="d-input d-input-bordered w-full"
                     value={answer as string}
                     onChange={(e) => setAnswer(e.target.value)}
                   />
-                </div>
+                </fieldset>
               )}
 
               {/* Fallback for unknown question types */}

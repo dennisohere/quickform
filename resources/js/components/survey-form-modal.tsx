@@ -23,7 +23,7 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (mode === 'create') {
       post('/surveys', {
         onSuccess: () => {
@@ -64,10 +64,8 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="d-form-control">
-                <label className="d-label">
-                  <span className="d-label-text">Survey Title *</span>
-                </label>
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Survey Title</legend>
                 <input
                   type="text"
                   className={`d-input d-input-bordered w-full ${errors.title ? 'd-input-error' : ''}`}
@@ -76,16 +74,12 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
                   placeholder="Enter survey title"
                 />
                 {errors.title && (
-                  <label className="d-label">
-                    <span className="d-label-text-alt text-error">{errors.title}</span>
-                  </label>
+                  <p className="d-label text-error">{errors.title}</p>
                 )}
-              </div>
+              </fieldset>
 
-              <div className="d-form-control">
-                <label className="d-label">
-                  <span className="d-label-text">Description</span>
-                </label>
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Description</legend>
                 <textarea
                   className={`d-textarea d-textarea-bordered h-24 ${errors.description ? 'd-textarea-error' : ''}`}
                   value={data.description}
@@ -93,11 +87,9 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
                   placeholder="Enter survey description (optional)"
                 />
                 {errors.description && (
-                  <label className="d-label">
-                    <span className="d-label-text-alt text-error">{errors.description}</span>
-                  </label>
+                  <p className="d-label text-error">{errors.description}</p>
                 )}
-              </div>
+              </fieldset>
 
               <div className="d-modal-action">
                 <button
@@ -128,4 +120,4 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
       )}
     </>
   );
-} 
+}

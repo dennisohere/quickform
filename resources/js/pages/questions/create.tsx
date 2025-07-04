@@ -76,10 +76,8 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
           <div className="d-card-body">
             <h2 className="d-card-title">Question Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="d-form-control">
-                <label className="d-label">
-                  <span className="d-label-text">Question Text *</span>
-                </label>
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Question Text</legend>
                 <input
                   type="text"
                   className={`d-input d-input-bordered w-full ${errors.question_text ? 'd-input-error' : ''}`}
@@ -88,16 +86,12 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                   placeholder="Enter your question"
                 />
                 {errors.question_text && (
-                  <label className="d-label">
-                    <span className="d-label-text-alt text-error">{errors.question_text}</span>
-                  </label>
+                  <p className="d-label text-error">{errors.question_text}</p>
                 )}
-              </div>
+              </fieldset>
 
-              <div className="d-form-control">
-                <label className="d-label">
-                  <span className="d-label-text">Question Type *</span>
-                </label>
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Question Type</legend>
                 <select
                   className="d-select d-select-bordered w-full"
                   value={questionType}
@@ -112,13 +106,11 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                   <option value="number">Number</option>
                   <option value="date">Date</option>
                 </select>
-              </div>
+              </fieldset>
 
               {(questionType === 'radio' || questionType === 'select' || questionType === 'checkbox') && (
-                <div className="d-form-control">
-                  <label className="d-label">
-                    <span className="d-label-text">Options *</span>
-                  </label>
+                <fieldset className="d-fieldset">
+                  <legend className="d-fieldset-legend">Options</legend>
                   <div className="space-y-2">
                     {options.map((option, index) => (
                       <div key={index} className="flex gap-2">
@@ -149,20 +141,21 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
                       Add Option
                     </button>
                   </div>
-                </div>
+                </fieldset>
               )}
 
-              <div className="d-form-control">
-                <label className="d-label cursor-pointer">
-                  <span className="d-label-text">Required Question</span>
+              <fieldset className="d-fieldset">
+                <legend className="d-fieldset-legend">Required Question</legend>
+                <label className="d-label cursor-pointer justify-start gap-3">
                   <input
                     type="checkbox"
                     className="d-toggle d-toggle-primary"
                     checked={data.is_required}
                     onChange={(e) => setData('is_required', e.target.checked)}
                   />
+                  <span className="d-label-text">Make this question required</span>
                 </label>
-              </div>
+              </fieldset>
 
               <div className="d-card-actions justify-end">
                 <button type="submit" className="d-btn d-btn-primary" disabled={processing}>

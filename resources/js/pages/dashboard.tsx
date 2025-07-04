@@ -41,12 +41,13 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold">Dashboard</h1>
-                    <Link href="/surveys/create">
-                        <button className="d-btn d-btn-primary">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Survey
-                        </button>
-                    </Link>
+                    <button 
+                        className="d-btn d-btn-primary"
+                        onClick={() => setIsCreateModalOpen(true)}
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Survey
+                    </button>
                 </div>
 
                 <div className="d-stats shadow">
