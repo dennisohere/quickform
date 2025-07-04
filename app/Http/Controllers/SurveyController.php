@@ -6,9 +6,12 @@ use App\Models\Survey;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class SurveyController extends Controller
 {
+    use AuthorizesRequests, ValidatesRequests;
     /**
      * Display a listing of the resource.
      */

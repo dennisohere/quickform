@@ -7,9 +7,12 @@ use App\Models\Response;
 use App\Models\QuestionResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class PublicSurveyController extends Controller
 {
+    use AuthorizesRequests, ValidatesRequests;
     /**
      * Display the survey for public response.
      */
