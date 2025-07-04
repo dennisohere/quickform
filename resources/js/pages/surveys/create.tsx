@@ -1,8 +1,25 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 export default function SurveyCreate() {
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+    },
+    {
+      title: 'Surveys',
+      href: '/surveys',
+    },
+    {
+      title: 'Create Survey',
+      href: '/surveys/create',
+    },
+  ];
+
   const { data, setData, post, processing, errors } = useForm({
     title: '',
     description: '',
@@ -14,10 +31,10 @@ export default function SurveyCreate() {
   };
 
   return (
-    <>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Create Survey" />
       
-      <div className="container mx-auto py-8 max-w-2xl">
+      <div className="flex h-full flex-1 flex-col gap-6 p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Create New Survey</h1>
           <p className="text-base-content/70 mt-2">
@@ -25,7 +42,7 @@ export default function SurveyCreate() {
           </p>
         </div>
 
-        <div className="d-card bg-base-100 shadow-xl">
+        <div className="d-card bg-base-100 shadow-xl max-w-2xl">
           <div className="d-card-body">
             <h2 className="d-card-title">Survey Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -86,6 +103,6 @@ export default function SurveyCreate() {
           </div>
         </div>
       </div>
-    </>
+    </AppLayout>
   );
 } 

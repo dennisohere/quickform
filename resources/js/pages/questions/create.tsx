@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Plus, X } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 interface Props {
   surveyId: string;
@@ -8,6 +10,25 @@ interface Props {
 }
 
 export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+    },
+    {
+      title: 'Surveys',
+      href: '/surveys',
+    },
+    {
+      title: surveyTitle,
+      href: `/surveys/${surveyId}`,
+    },
+    {
+      title: 'Add Question',
+      href: `/surveys/${surveyId}/questions/create`,
+    },
+  ];
+
   const [questionType, setQuestionType] = useState('text');
   const [options, setOptions] = useState(['']);
 
@@ -40,10 +61,10 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
   };
 
   return (
-    <>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Add Question" />
       
-      <div className="container mx-auto py-8 max-w-2xl">
+      <div className="flex h-full flex-1 flex-col gap-6 p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Add Question</h1>
           <p className="text-base-content/70 mt-2">
@@ -51,7 +72,7 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
           </p>
         </div>
 
-        <div className="d-card bg-base-100 shadow-xl">
+        <div className="d-card bg-base-100 shadow-xl max-w-2xl">
           <div className="d-card-body">
             <h2 className="d-card-title">Question Details</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -163,6 +184,6 @@ export default function QuestionCreate({ surveyId, surveyTitle }: Props) {
           </div>
         </div>
       </div>
-    </>
+    </AppLayout>
   );
 } 

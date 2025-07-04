@@ -1,6 +1,8 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Edit, Copy, Eye, Trash2, ArrowUpDown } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 interface Question {
   id: string;
@@ -36,6 +38,21 @@ interface Props {
 }
 
 export default function SurveyShow({ survey }: Props) {
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+    },
+    {
+      title: 'Surveys',
+      href: '/surveys',
+    },
+    {
+      title: survey.title,
+      href: `/surveys/${survey.id}`,
+    },
+  ];
+
   const copyShareLink = () => {
     if (survey.share_token) {
       const url = `${window.location.origin}/survey/${survey.share_token}`;
@@ -59,11 +76,11 @@ export default function SurveyShow({ survey }: Props) {
   };
 
   return (
-    <>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={survey.title} />
       
-      <div className="container mx-auto py-8">
-        <div className="flex justify-between items-start mb-8">
+      <div className="flex h-full flex-1 flex-col gap-6 p-6">
+        <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold">{survey.title}</h1>
             {survey.description && (
@@ -260,6 +277,6 @@ export default function SurveyShow({ survey }: Props) {
           </div>
         </div>
       </div>
-    </>
+    </AppLayout>
   );
 } 

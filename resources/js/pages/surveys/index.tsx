@@ -1,6 +1,8 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Eye, Edit, Trash2, Copy } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 interface Survey {
   id: string;
@@ -18,6 +20,17 @@ interface Props {
 }
 
 export default function SurveysIndex({ surveys }: Props) {
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+    },
+    {
+      title: 'Surveys',
+      href: '/surveys',
+    },
+  ];
+
   const copyShareLink = (token: string) => {
     const url = `${window.location.origin}/survey/${token}`;
     navigator.clipboard.writeText(url);
@@ -31,11 +44,11 @@ export default function SurveysIndex({ surveys }: Props) {
   };
 
   return (
-    <>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Surveys" />
       
-      <div className="container mx-auto py-8">
-        <div className="flex justify-between items-center mb-8">
+      <div className="flex h-full flex-1 flex-col gap-6 p-6">
+        <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">My Surveys</h1>
           <Link href="/surveys/create">
             <button className="d-btn d-btn-primary">
@@ -119,6 +132,6 @@ export default function SurveysIndex({ surveys }: Props) {
           </div>
         )}
       </div>
-    </>
+    </AppLayout>
   );
 } 
