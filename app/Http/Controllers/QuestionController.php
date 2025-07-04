@@ -24,8 +24,9 @@ class QuestionController extends Controller
     {
         $this->authorize('update', $survey);
 
-        return Inertia::render('Questions/Create', [
-            'survey' => $survey,
+        return Inertia::render('questions/create', [
+            'surveyId' => $survey->id,
+            'surveyTitle' => $survey->title,
         ]);
     }
 
@@ -71,7 +72,7 @@ class QuestionController extends Controller
     {
         $this->authorize('update', $survey);
 
-        return Inertia::render('Questions/Edit', [
+        return Inertia::render('questions/edit', [
             'survey' => $survey,
             'question' => $question,
         ]);

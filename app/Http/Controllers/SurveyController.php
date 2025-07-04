@@ -19,7 +19,7 @@ class SurveyController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return Inertia::render('Surveys/Index', [
+        return Inertia::render('surveys/index', [
             'surveys' => $surveys,
         ]);
     }
@@ -29,7 +29,7 @@ class SurveyController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Surveys/Create');
+        return Inertia::render('surveys/create');
     }
 
     /**
@@ -59,7 +59,7 @@ class SurveyController extends Controller
             $query->orderBy('order');
         }, 'responses']);
 
-        return Inertia::render('Surveys/Show', [
+        return Inertia::render('surveys/show', [
             'survey' => $survey,
         ]);
     }
@@ -71,7 +71,7 @@ class SurveyController extends Controller
     {
         $this->authorize('update', $survey);
 
-        return Inertia::render('Surveys/Edit', [
+        return Inertia::render('surveys/edit', [
             'survey' => $survey,
         ]);
     }
@@ -146,7 +146,7 @@ class SurveyController extends Controller
 
         $survey->load(['responses.questionResponses.question']);
 
-        return Inertia::render('Surveys/Responses', [
+        return Inertia::render('surveys/responses', [
             'survey' => $survey,
         ]);
     }
