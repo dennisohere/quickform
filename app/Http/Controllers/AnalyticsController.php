@@ -104,7 +104,7 @@ class AnalyticsController extends Controller
                     'question_text' => $question->question_text,
                     'question_type' => $question->question_type,
                     'total_answers' => $totalAnswers,
-                    'response_rate' => $totalAnswers > 0 ? round(($totalAnswers / $question->questionResponses_count) * 100, 1) : 0,
+                    'response_rate' => $question->questionResponses_count > 0 ? round(($totalAnswers / $question->questionResponses_count) * 100, 1) : 0,
                 ];
                 
                 // Add type-specific analytics
