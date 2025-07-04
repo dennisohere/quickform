@@ -10,6 +10,10 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+    // Analytics routes
+    Route::get('analytics', [\App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics');
+    Route::get('analytics/survey/{survey}', [\App\Http\Controllers\AnalyticsController::class, 'survey'])->name('analytics.survey');
+
     // Survey management routes
     Route::resource('surveys', \App\Http\Controllers\SurveyController::class)->except(['edit']);
     Route::patch('surveys/{survey}/toggle-publish', [\App\Http\Controllers\SurveyController::class, 'togglePublish'])

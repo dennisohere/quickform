@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Eye, Edit, Trash2, Copy, FileText, Users, Calendar } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Copy, FileText, Users, Calendar, BarChart3 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import SurveyFormModal from '@/components/survey-form-modal';
@@ -138,6 +138,11 @@ export default function SurveysIndex({ surveys }: Props) {
                       <Link href={`/surveys/${survey.id}`}>
                         <button className="d-btn d-btn-square d-btn-ghost d-btn-sm">
                           <Eye className="w-4 h-4" />
+                        </button>
+                      </Link>
+                      <Link href={`/analytics/survey/${survey.id}`}>
+                        <button className="d-btn d-btn-square d-btn-ghost d-btn-sm">
+                          <BarChart3 className="w-4 h-4" />
                         </button>
                       </Link>
                       <button 

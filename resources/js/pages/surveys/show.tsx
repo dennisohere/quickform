@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Edit, Copy, Eye, Trash2, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit, Copy, Eye, Trash2, ArrowUpDown, BarChart3 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import SurveyFormModal from '@/components/survey-form-modal';
@@ -310,13 +310,21 @@ export default function SurveyShow({ survey }: Props) {
             <div className="d-card bg-base-100 shadow-xl">
               <div className="d-card-body">
                 <h2 className="d-card-title">Actions</h2>
-                <button
-                  className="d-btn d-btn-outline d-btn-error w-full"
-                  onClick={deleteSurvey}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Survey
-                </button>
+                <div className="space-y-2">
+                  <Link href={`/analytics/survey/${survey.id}`}>
+                    <button className="d-btn d-btn-outline w-full">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      View Analytics
+                    </button>
+                  </Link>
+                  <button
+                    className="d-btn d-btn-outline d-btn-error w-full"
+                    onClick={deleteSurvey}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Survey
+                  </button>
+                </div>
               </div>
             </div>
           </div>

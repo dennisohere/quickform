@@ -19,11 +19,6 @@ const mainNavItems: NavItem[] = [
         icon: FileText,
     },
     {
-        title: 'Create Survey',
-        href: '/surveys/create',
-        icon: Plus,
-    },
-    {
         title: 'Analytics',
         href: '/analytics',
         icon: BarChart3,
