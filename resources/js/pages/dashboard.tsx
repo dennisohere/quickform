@@ -1,8 +1,10 @@
+import React, { useState } from 'react';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Plus, BarChart3, Users, FileText, Eye, LibraryBig, TextQuote, ListTodo } from 'lucide-react';
+import SurveyFormModal from '@/components/survey-form-modal';
 
 interface Stats {
     totalSurveys: number;
@@ -32,6 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Dashboard({ stats, recentSurveys }: Props) {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -80,15 +83,16 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                         <div className="d-card-body">
                             <h2 className="d-card-title">Recent Surveys</h2>
                             {recentSurveys.length === 0 ? (
-                                <div className="text-center py-8">
-                                    <p className="text-base-content/70 mb-4">No surveys yet</p>
-                                    <Link href="/surveys/create">
-                                        <button className="d-btn d-btn-primary">
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Create Your First Survey
-                                        </button>
-                                    </Link>
-                                </div>
+                                                            <div className="text-center py-8">
+                              <p className="text-base-content/70 mb-4">No surveys yet</p>
+                              <button 
+                                className="d-btn d-btn-primary"
+                                onClick={() => setIsCreateModalOpen(true)}
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create Your First Survey
+                              </button>
+                            </div>
                             ) : (
                                 <div className="space-y-3">
                                     {recentSurveys.map((survey) => (
@@ -132,12 +136,13 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                         <div className="d-card-body">
                             <h2 className="d-card-title">Quick Actions</h2>
                             <div className="space-y-4">
-                                <Link href="/surveys/create">
-                                    <button className="d-btn d-btn-primary w-full justify-start">
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Create New Survey
-                                    </button>
-                                </Link>
+                                <button 
+                                    className="d-btn d-btn-primary w-full justify-start"
+                                    onClick={() => setIsCreateModalOpen(true)}
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Create New Survey
+                                </button>
                                 <Link href="/surveys">
                                     <button className="d-btn d-btn-outline w-full justify-start">
                                         <FileText className="w-4 h-4 mr-2" />
@@ -165,6 +170,13 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                         </div>
                     </div>
                 </div>
+
+                {/* Create Survey Modal */}
+                <SurveyFormModal
+                    isOpen={isCreateModalOpen}
+                    onClose={() => setIsCreateModalOpen(false)}
+                    mode="create"
+                />
             </div>
         </AppLayout>
     );

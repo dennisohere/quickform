@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Eye, Edit, Trash2, Copy } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Copy, FileText, Users, Calendar } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import SurveyFormModal from '@/components/survey-form-modal';
 
 interface Survey {
   id: string;
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export default function SurveysIndex({ surveys }: Props) {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'Dashboard',
@@ -50,12 +53,13 @@ export default function SurveysIndex({ surveys }: Props) {
       <div className="flex h-full flex-1 flex-col gap-6 p-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">My Surveys</h1>
-          <Link href="/surveys/create">
-            <button className="d-btn d-btn-primary">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Survey
-            </button>
-          </Link>
+          <button 
+            className="d-btn d-btn-primary"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Survey
+          </button>
         </div>
 
         {surveys.length === 0 ? (
@@ -65,72 +69,103 @@ export default function SurveysIndex({ surveys }: Props) {
               <p className="text-base-content/70 mb-4">
                 Create your first survey to start collecting responses.
               </p>
-              <Link href="/surveys/create">
-                <button className="d-btn d-btn-primary">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Your First Survey
-                </button>
-              </Link>
+              <button 
+                className="d-btn d-btn-primary"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Survey
+              </button>
             </div>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {surveys.map((survey) => (
-              <div key={survey.id} className="d-card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-                <div className="d-card-body">
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="d-card-title text-lg">{survey.title}</h2>
-                    <div className={`d-badge ${survey.is_published ? 'd-badge-success' : 'd-badge-neutral'}`}>
-                      {survey.is_published ? 'Published' : 'Draft'}
+          <div className="d-card bg-base-100 shadow-xl">
+            <div className="d-card-body p-0">
+              <ul className="d-list">
+                <li className="p-4 pb-2 text-xs opacity-60 tracking-wide font-medium">
+                  {surveys.length} survey{surveys.length !== 1 ? 's' : ''} • Click to view details
+                </li>
+                
+                {surveys.map((survey) => (
+                  <li key={survey.id} className="d-list-row">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-box flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-medium">{survey.title}</div>
+                        {survey.description && (
+                          <div className="text-xs text-base-content/70 line-clamp-1">
+                            {survey.description}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  
-                  {survey.description && (
-                    <p className="text-base-content/70 line-clamp-2 mb-4">
-                      {survey.description}
-                    </p>
-                  )}
-                  
-                  <div className="flex justify-between items-center mb-4 text-sm text-base-content/70">
-                    <span>{survey.questions_count} questions</span>
-                    <span>{survey.responses_count} responses</span>
-                  </div>
-                  
-                  <div className="d-card-actions justify-end">
-                    <Link href={`/surveys/${survey.id}`}>
-                      <button className="d-btn d-btn-outline d-btn-sm">
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </button>
-                    </Link>
-                    <Link href={`/surveys/${survey.id}/edit`}>
-                      <button className="d-btn d-btn-outline d-btn-sm">
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </button>
-                    </Link>
-                    {survey.is_published && survey.share_token && (
+                    
+                    <div className="text-xs text-base-content/70">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1">
+                          <FileText className="w-3 h-3" />
+                          {survey.questions_count} questions
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {survey.responses_count} responses
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(survey.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className={`d-badge d-badge-xs ${survey.is_published ? 'd-badge-success' : 'd-badge-neutral'}`}>
+                        {survey.is_published ? 'Published' : 'Draft'}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-1">
+                      <Link href={`/surveys/${survey.id}`}>
+                        <button className="d-btn d-btn-square d-btn-ghost d-btn-sm">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </Link>
+                      <Link href={`/surveys/${survey.id}/edit`}>
+                        <button className="d-btn d-btn-square d-btn-ghost d-btn-sm">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </Link>
+                      {survey.is_published && survey.share_token && (
+                        <button
+                          className="d-btn d-btn-square d-btn-ghost d-btn-sm"
+                          onClick={() => copyShareLink(survey.share_token!)}
+                          title="Copy share link"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
-                        className="d-btn d-btn-outline d-btn-sm"
-                        onClick={() => copyShareLink(survey.share_token!)}
+                        className="d-btn d-btn-square d-btn-ghost d-btn-sm text-error"
+                        onClick={() => deleteSurvey(survey.id)}
+                        title="Delete survey"
                       >
-                        <Copy className="w-4 h-4 mr-1" />
-                        Copy Link
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                    )}
-                    <button
-                      className="d-btn d-btn-outline d-btn-sm d-btn-error"
-                      onClick={() => deleteSurvey(survey.id)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
+
+        {/* Create Survey Modal */}
+        <SurveyFormModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          mode="create"
+        />
       </div>
     </AppLayout>
   );
