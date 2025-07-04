@@ -136,4 +136,18 @@ class SurveyController extends Controller
 
         return back()->with('success', 'Share token regenerated successfully!');
     }
+
+    /**
+     * Display survey responses.
+     */
+    public function responses(Survey $survey)
+    {
+        $this->authorize('view', $survey);
+
+        $survey->load(['responses.questionResponses.question']);
+
+        return Inertia::render('Surveys/Responses', [
+            'survey' => $survey,
+        ]);
+    }
 }

@@ -18,6 +18,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('surveys.toggle-publish');
     Route::patch('surveys/{survey}/regenerate-token', [\App\Http\Controllers\SurveyController::class, 'regenerateToken'])
         ->name('surveys.regenerate-token');
+    Route::get('surveys/{survey}/responses', [\App\Http\Controllers\SurveyController::class, 'responses'])
+        ->name('surveys.responses');
 
     // Question management routes
     Route::resource('surveys.questions', \App\Http\Controllers\QuestionController::class)

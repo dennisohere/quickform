@@ -204,7 +204,17 @@ export default function SurveyShow({ survey }: Props) {
             {/* Responses Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Responses ({survey.responses.length})</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Responses ({survey.responses.length})</CardTitle>
+                  {survey.responses.length > 0 && (
+                    <Link href={route('surveys.responses', survey.id)}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View All
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {survey.responses.length === 0 ? (
