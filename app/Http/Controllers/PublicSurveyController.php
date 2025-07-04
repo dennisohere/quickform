@@ -139,7 +139,7 @@ class PublicSurveyController extends Controller
             ->where('is_published', true)
             ->with(['questions' => function ($query) {
                 $query->orderBy('order');
-            }])
+            }, 'creator'])
             ->firstOrFail();
 
         $response = Response::where('id', $responseId)
@@ -185,7 +185,7 @@ class PublicSurveyController extends Controller
             // Send notification for survey completion
             $notificationService = app(NotificationService::class);
             $notificationService->createSurveyCompletionNotification(
-                $survey->user,
+                $survey->creator,
                 $survey,
                 $response->respondent_name ?? 'Anonymous'
             );

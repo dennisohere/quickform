@@ -50,14 +50,14 @@ class SendReminders extends Command
     {
         $unpublishedSurveys = Survey::where('is_published', false)
             ->where('created_at', '<=', now()->subDays(3)) // Surveys created more than 3 days ago
-            ->with('user')
+            ->with('creator')
             ->get();
 
         $sentCount = 0;
 
         foreach ($unpublishedSurveys as $survey) {
             $notification = $notificationService->createReminderNotification(
-                $survey->user,
+                $survey->creator,
                 $survey,
                 'Your survey is still unpublished and ready to be shared'
             );
@@ -79,14 +79,14 @@ class SendReminders extends Command
             ->whereHas('questions')
             ->whereDoesntHave('responses')
             ->where('created_at', '<=', now()->subDays(7)) // Surveys published more than 7 days ago
-            ->with('user')
+            ->with('creator')
             ->get();
 
         $sentCount = 0;
 
         foreach ($surveysWithNoResponses as $survey) {
             $notification = $notificationService->createReminderNotification(
-                $survey->user,
+                $survey->creator,
                 $survey,
                 'Your published survey has not received any responses yet'
             );

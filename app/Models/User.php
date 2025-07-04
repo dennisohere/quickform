@@ -58,7 +58,7 @@ class User extends Authenticatable
      */
     public function surveys(): HasMany
     {
-        return $this->hasMany(Survey::class);
+        return $this->hasMany(Survey::class, 'created_by');
     }
 
     public function notifications(): HasMany
