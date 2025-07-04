@@ -28,6 +28,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->except(['index', 'show']);
     Route::patch('surveys/{survey}/questions/reorder', [\App\Http\Controllers\QuestionController::class, 'reorder'])
         ->name('surveys.questions.reorder');
+
+    // Notification routes
+    Route::get('notifications', [\App\Http\Controllers\NotificationsController::class, 'index'])->name('notifications');
+    Route::patch('notifications/{notification}/read', [\App\Http\Controllers\NotificationsController::class, 'markAsRead'])->name('notifications.read');
+    Route::patch('notifications/mark-all-read', [\App\Http\Controllers\NotificationsController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::get('notifications/unread-count', [\App\Http\Controllers\NotificationsController::class, 'unreadCount'])->name('notifications.unread-count');
 });
 
 // Public survey routes (no auth required)

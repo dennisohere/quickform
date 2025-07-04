@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Survey;
 use App\Models\Response;
 use App\Models\QuestionResponse;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -180,6 +181,14 @@ class PublicSurveyController extends Controller
         if (!$nextQuestion) {
             // Mark response as completed
             $response->markAsCompleted();
+
+            // Send notification for survey completion
+            $notificationService = app(NotificationService::class);
+            $notificationService->createSurveyCompletionNotification(
+                $survey->user,
+                $survey,
+                $response->respondent_name ?? 'Anonymous'
+            );
 
             return redirect()->route('public.survey.complete', [
                 'token' => $token,
