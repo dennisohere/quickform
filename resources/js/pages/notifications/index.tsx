@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Bell, Check, CheckCheck, ArrowLeft } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -54,9 +54,9 @@ export default function NotificationsIndex({ notifications }: Props) {
     switch (notification.type) {
       case 'survey_response':
       case 'survey_completion':
-        return `/analytics/survey/${notification.data.survey_id}`;
+        return route('admin.analytics.survey', { survey: notification.data.survey_id });
       case 'reminder':
-        return `/surveys/${notification.data.survey_id}`;
+        return route('admin.surveys.show', { survey: notification.data.survey_id });
       default:
         return '#';
     }

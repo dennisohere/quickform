@@ -30,8 +30,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     Route::resource('surveys', SurveyController::class);
     Route::get('surveys/{survey}/responses', [SurveyController::class, 'responses'])->name('surveys.responses');
 
-    // Questions
-    Route::resource('questions', QuestionController::class);
+    // Questions (survey-specific)
+    Route::resource('surveys.questions', QuestionController::class)->except(['index', 'show']);
 
     // Analytics
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');

@@ -163,7 +163,7 @@ export default function SurveyShow({ survey }: Props) {
               <div className="d-card-body">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="d-card-title">Questions ({survey.questions.length})</h2>
-                  <Link href={`/surveys/${survey.id}/questions/create`}>
+                  <Link href={route('admin.surveys.questions.create', { survey: survey.id })}>
                     <button className="d-btn d-btn-primary d-btn-sm">
                       <Plus className="w-4 h-4 mr-2" />
                       Add Question
@@ -174,7 +174,7 @@ export default function SurveyShow({ survey }: Props) {
                 {survey.questions.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-base-content/70 mb-4">No questions yet</p>
-                    <Link href={`/surveys/${survey.id}/questions/create`}>
+                    <Link href={route('admin.surveys.questions.create', { survey: survey.id })}>
                       <button className="d-btn d-btn-soft d-btn-primary">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Your First Question
@@ -208,7 +208,7 @@ export default function SurveyShow({ survey }: Props) {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Link href={`/surveys/${survey.id}/questions/${question.id}/edit`}>
+                              <Link href={route('admin.surveys.questions.edit', { survey: survey.id, question: question.id })}>
                                 <button className="d-btn d-btn-outline d-btn-sm">
                                   <Edit className="w-4 h-4" />
                                 </button>
@@ -266,7 +266,7 @@ export default function SurveyShow({ survey }: Props) {
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="d-card-title">Responses ({survey.responses.length})</h2>
                   {survey.responses.length > 0 && (
-                    <Link href={`/surveys/${survey.id}/responses`}>
+                    <Link href={route('admin.surveys.responses', { survey: survey.id })}>
                       <button className="d-btn d-btn-outline d-btn-sm">
                         <Eye className="w-4 h-4 mr-1" />
                         View All
@@ -312,7 +312,7 @@ export default function SurveyShow({ survey }: Props) {
                 <h2 className="d-card-title">Actions</h2>
                 <div className="space-y-2">
                   <div>
-                      <Link href={`/analytics/survey/${survey.id}`}>
+                      <Link href={route('admin.analytics.survey', { survey: survey.id })}>
                           <button className="d-btn d-btn-outline w-full">
                               <BarChart3 className="w-4 h-4 mr-2" />
                               View Analytics

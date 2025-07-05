@@ -341,13 +341,13 @@ export default function SurveyAnalytics({
                       </div>
                       
                       <div className="space-y-2">
-                        {response.questionResponses.slice(0, 3).map((qr, index) => (
+                        {(response.questionResponses || []).slice(0, 3).map((qr, index) => (
                           <div key={index} className="text-sm">
                             <p className="font-medium">{qr.question.question_text}</p>
                             <p className="text-base-content/70">{qr.answer}</p>
                           </div>
                         ))}
-                        {response.questionResponses.length > 3 && (
+                        {(response.questionResponses || []).length > 3 && (
                           <p className="text-xs text-base-content/70">
                             +{response.questionResponses.length - 3} more answers
                           </p>
