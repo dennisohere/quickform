@@ -49,7 +49,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
   {
     title: 'Analytics',
-    href: route('admin.analytics'),
+            href: route('admin.analytics.index'),
   },
 ];
 

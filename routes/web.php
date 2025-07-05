@@ -25,25 +25,25 @@ Route::prefix('survey')->name('survey.')->group(function () {
 // Admin routes (require authentication)
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Surveys
     Route::resource('surveys', SurveyController::class);
     Route::get('surveys/{survey}/responses', [SurveyController::class, 'responses'])->name('surveys.responses');
-    
+
     // Questions
     Route::resource('questions', QuestionController::class);
-    
+
     // Analytics
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('analytics/survey/{survey}', [AnalyticsController::class, 'survey'])->name('analytics.survey');
-    
+
     // Notifications
     Route::get('notifications', [NotificationsController::class, 'index'])->name('notifications.index');
 });
 
 // Welcome page (landing page)
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    return Inertia::render('welcome');
 })->name('welcome');
 
 require __DIR__.'/auth.php';

@@ -20,12 +20,12 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Analytics',
-        href: route('admin.analytics'),
+        href: route('admin.analytics.index'),
         icon: BarChart3,
     },
     {
         title: 'Notifications',
-        href: route('admin.notifications'),
+        href: route('admin.notifications.index'),
         icon: Bell,
     },
 ];

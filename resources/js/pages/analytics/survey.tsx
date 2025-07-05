@@ -75,7 +75,7 @@ export default function SurveyAnalytics({
     },
     {
       title: 'Analytics',
-      href: route('admin.analytics'),
+              href: route('admin.analytics.index'),
     },
     {
       title: survey.title,
@@ -91,7 +91,7 @@ export default function SurveyAnalytics({
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Link href={route('admin.analytics')}>
+                              <Link href={route('admin.analytics.index')}>
                 <button className="d-btn d-btn-ghost d-btn-sm">
                   <ArrowLeft className="w-4 h-4" />
                 </button>
