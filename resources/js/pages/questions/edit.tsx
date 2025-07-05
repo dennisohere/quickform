@@ -44,13 +44,13 @@ export default function QuestionEdit({ survey, question }: Props) {
   ];
 
   const [questionType, setQuestionType] = useState(question.question_type);
-  const [options, setOptions] = useState(question.options || ['']);
+  const [options, setOptions] = useState(Array.isArray(question.options) ? question.options : ['']);
 
   const { data, setData, put, processing, errors } = useForm({
     question_text: question.question_text,
     question_type: question.question_type,
     is_required: question.is_required,
-    options: question.options || [],
+    options: Array.isArray(question.options) ? question.options : [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {

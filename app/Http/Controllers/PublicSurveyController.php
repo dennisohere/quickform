@@ -117,6 +117,15 @@ class PublicSurveyController extends Controller
             return $question->id === $questionId;
         });
 
+        // Get previous and next question IDs for navigation
+        $previousQuestion = $currentIndex > 0 ? $questions->get($currentIndex - 1) : null;
+        $nextQuestion = $currentIndex < $questions->count() - 1 ? $questions->get($currentIndex + 1) : null;
+
+        // Get the previous answer for this question if it exists
+        $previousAnswer = $response->questionResponses()
+            ->where('question_id', $currentQuestion->id)
+            ->first();
+
         return Inertia::render('public-survey/question', [
             'survey' => [
                 'id' => $survey->id,
@@ -127,6 +136,12 @@ class PublicSurveyController extends Controller
             'questionIndex' => $currentIndex,
             'responseId' => $response->id,
             'token' => $token,
+            'previousAnswer' => $previousAnswer?->answer,
+            'navigation' => [
+                'previousQuestionId' => $previousQuestion?->id,
+                'nextQuestionId' => $nextQuestion?->id,
+                'isLastQuestion' => $currentIndex === $questions->count() - 1,
+            ],
         ]);
     }
 

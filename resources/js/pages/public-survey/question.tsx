@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 
@@ -24,6 +24,11 @@ interface Props {
   responseId: string;
   token: string;
   previousAnswer?: string | string[];
+  navigation: {
+    previousQuestionId?: string;
+    nextQuestionId?: string;
+    isLastQuestion: boolean;
+  };
 }
 
 export default function PublicSurveyQuestion({
@@ -32,43 +37,59 @@ export default function PublicSurveyQuestion({
   questionIndex,
   responseId,
   token,
-  previousAnswer
+  previousAnswer,
+  navigation
 }: Props) {
-  const [answer, setAnswer] = useState<string | string[]>(
-    previousAnswer || (question.question_type === 'checkbox' ? [] : '')
-  );
-
   const { data, setData, post, processing } = useForm({
-    answer: '',
+    answer: previousAnswer || (question.question_type === 'checkbox' ? [] : ''),
   });
+
+  // Set form data when question changes to show previous answer or default value
+  useEffect(() => {
+    if (previousAnswer) {
+      // If there's a previous answer, use it
+      if (question.question_type === 'checkbox') {
+        // For checkboxes, split the comma-separated string back into an array
+        const answerArray = typeof previousAnswer === 'string' 
+          ? previousAnswer.split(', ').filter(item => item.trim() !== '')
+          : previousAnswer;
+        setData('answer', answerArray);
+      } else {
+        setData('answer', previousAnswer);
+      }
+    } else {
+      // If no previous answer, set default value
+      setData('answer', question.question_type === 'checkbox' ? [] : '');
+    }
+  }, [question.id, previousAnswer, question.question_type]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (question.is_required) {
       if (question.question_type === 'checkbox') {
-        if ((answer as string[]).length === 0) {
+        if ((data.answer as string[]).length === 0) {
           alert('This question is required. Please select at least one option.');
           return;
         }
       } else {
-        if (!answer || (answer as string).trim() === '') {
+        if (!data.answer || (data.answer as string).trim() === '') {
           alert('This question is required. Please provide an answer.');
           return;
         }
       }
     }
 
-    setData('answer', Array.isArray(answer) ? answer.join(', ') : answer);
-    post(`/survey/${token}/response/${responseId}/question/${questionIndex}/answer`);
+    setData('answer', Array.isArray(data.answer) ? data.answer.join(', ') : data.answer);
+    post(`/survey/${token}/response/${responseId}/question/${question.id}/answer`);
   };
 
   const handleCheckboxChange = (option: string) => {
-    const currentAnswers = answer as string[];
+    const currentAnswers = data.answer as string[];
     if (currentAnswers.includes(option)) {
-      setAnswer(currentAnswers.filter(a => a !== option));
+      setData('answer', currentAnswers.filter(a => a !== option));
     } else {
-      setAnswer([...currentAnswers, option]);
+      setData('answer', [...currentAnswers, option]);
     }
   };
 
@@ -106,8 +127,8 @@ export default function PublicSurveyQuestion({
                   <input
                     type="text"
                     className="d-input d-input-bordered w-full"
-                    value={answer as string}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    value={data.answer as string}
+                    onChange={(e) => setData('answer', e.target.value)}
                     placeholder="Enter your answer"
                   />
                 </fieldset>
@@ -118,8 +139,8 @@ export default function PublicSurveyQuestion({
                   <legend className="d-fieldset-legend">Your Answer</legend>
                   <textarea
                     className="d-textarea w-full d-textarea-bordered h-32"
-                    value={answer as string}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    value={data.answer as string}
+                    onChange={(e) => setData('answer', e.target.value)}
                     placeholder="Enter your answer"
                   />
                 </fieldset>
@@ -131,8 +152,8 @@ export default function PublicSurveyQuestion({
                   <input
                     type="email"
                     className="d-input d-input-bordered w-full"
-                    value={answer as string}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    value={data.answer as string}
+                    onChange={(e) => setData('answer', e.target.value)}
                     placeholder="Enter your email"
                   />
                 </fieldset>
@@ -144,14 +165,14 @@ export default function PublicSurveyQuestion({
                   <input
                     type="number"
                     className="d-input d-input-bordered w-full"
-                    value={answer as string}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    value={data.answer as string}
+                    onChange={(e) => setData('answer', e.target.value)}
                     placeholder="Enter a number"
                   />
                 </fieldset>
               )}
 
-              {question.question_type === 'radio' && question.options && (
+              {question.question_type === 'radio' && Array.isArray(question.options) && question.options.length > 0 && (
                 <fieldset className="d-fieldset">
                   <legend className="d-fieldset-legend">Select One Option</legend>
                   <div className="space-y-3">
@@ -162,8 +183,8 @@ export default function PublicSurveyQuestion({
                           name="answer"
                           className="d-radio d-radio-primary"
                           value={option}
-                          checked={answer === option}
-                          onChange={(e) => setAnswer(e.target.value)}
+                          checked={data.answer === option}
+                          onChange={(e) => setData('answer', e.target.value)}
                         />
                         <span className="d-label-text">{option}</span>
                       </label>
@@ -172,13 +193,13 @@ export default function PublicSurveyQuestion({
                 </fieldset>
               )}
 
-              {question.question_type === 'select' && question.options && (
+              {question.question_type === 'select' && Array.isArray(question.options) && question.options.length > 0 && (
                 <fieldset className="d-fieldset">
                   <legend className="d-fieldset-legend">Select an Option</legend>
                   <select
                     className="d-select d-select-bordered w-full"
-                    value={answer as string}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    value={data.answer as string}
+                    onChange={(e) => setData('answer', e.target.value)}
                   >
                     <option value="">Select an option</option>
                     {question.options.map((option, index) => (
@@ -190,7 +211,7 @@ export default function PublicSurveyQuestion({
                 </fieldset>
               )}
 
-              {question.question_type === 'checkbox' && question.options && (
+              {question.question_type === 'checkbox' && Array.isArray(question.options) && question.options.length > 0 && (
                 <fieldset className="d-fieldset">
                   <legend className="d-fieldset-legend">Select All That Apply</legend>
                   <div className="space-y-3">
@@ -200,7 +221,7 @@ export default function PublicSurveyQuestion({
                           type="checkbox"
                           className="d-checkbox d-checkbox-primary"
                           value={option}
-                          checked={(answer as string[]).includes(option)}
+                          checked={(data.answer as string[]).includes(option)}
                           onChange={() => handleCheckboxChange(option)}
                         />
                         <span className="d-label-text">{option}</span>
@@ -216,8 +237,8 @@ export default function PublicSurveyQuestion({
                   <input
                     type="date"
                     className="d-input d-input-bordered w-full"
-                    value={answer as string}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    value={data.answer as string}
+                    onChange={(e) => setData('answer', e.target.value)}
                   />
                 </fieldset>
               )}
@@ -234,15 +255,13 @@ export default function PublicSurveyQuestion({
 
               {/* Navigation */}
               <div className="flex justify-between pt-6">
-                {questionIndex > 0 ? (
+                {navigation.previousQuestionId ? (
                   <button
                     type="button"
                     className="d-btn d-btn-outline"
                     onClick={() => {
-                      setData('answer', Array.isArray(answer) ? answer.join(', ') : answer);
-                      post(`/survey/${token}/response/${responseId}/question/${questionIndex - 1}/answer`, {
-                        preserveScroll: true,
-                      });
+                      // Navigate to previous question without saving current answer
+                      window.location.href = `/survey/${token}/response/${responseId}/question/${navigation.previousQuestionId}`;
                     }}
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -258,7 +277,7 @@ export default function PublicSurveyQuestion({
                       <span className="d-loading d-loading-spinner d-loading-sm"></span>
                       Saving...
                     </>
-                  ) : questionIndex === survey.questions_count - 1 ? (
+                  ) : navigation.isLastQuestion ? (
                     <>
                       Complete Survey
                       <ArrowRight className="w-4 h-4 ml-2" />

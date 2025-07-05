@@ -1,9 +1,8 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Download, Eye } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 interface QuestionResponse {
   id: string;
@@ -37,63 +36,82 @@ interface Props {
 }
 
 export default function SurveyResponses({ survey }: Props) {
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+    },
+    {
+      title: 'Surveys',
+      href: '/surveys',
+    },
+    {
+      title: survey.title,
+      href: `/surveys/${survey.id}`,
+    },
+    {
+      title: 'Responses',
+      href: `/surveys/${survey.id}/responses`,
+    },
+  ];
+
   const exportResponses = () => {
     // This would implement CSV export functionality
     console.log('Export responses');
   };
 
   return (
-    <>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Responses - ${survey.title}`} />
       
-      <div className="container mx-auto py-8">
-        <div className="flex justify-between items-start mb-8">
+      <div className="flex h-full flex-1 flex-col gap-6 p-6">
+        <div className="flex justify-between items-start">
           <div>
-            <div className="flex items-center gap-4 mb-4">
-              <Link href={route('surveys.show', survey.id)}>
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Survey
-                </Button>
-              </Link>
-            </div>
             <h1 className="text-3xl font-bold">{survey.title} - Responses</h1>
             {survey.description && (
-              <p className="text-muted-foreground mt-2">{survey.description}</p>
+              <p className="text-base-content/70 mt-2">{survey.description}</p>
             )}
           </div>
-          <Button onClick={exportResponses}>
-            <Download className="w-4 h-4 mr-2" />
-            Export Responses
-          </Button>
+          <div className="flex gap-2">
+            <Link href={route('surveys.show', survey.id)}>
+              <button className="d-btn d-btn-outline">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Survey
+              </button>
+            </Link>
+            <button className="d-btn d-btn-primary" onClick={exportResponses}>
+              <Download className="w-4 h-4 mr-2" />
+              Export Responses
+            </button>
+          </div>
         </div>
 
-        <div className="grid gap-6">
+        <div className="space-y-6">
           {survey.responses.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
+            <div className="d-card bg-base-100 shadow-xl">
+              <div className="d-card-body text-center py-12">
                 <h3 className="text-lg font-semibold mb-2">No responses yet</h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-base-content/70 mb-4">
                   Once people start responding to your survey, you'll see their responses here.
                 </p>
                 <Link href={route('surveys.show', survey.id)}>
-                  <Button>
+                  <button className="d-btn d-btn-primary">
                     <Eye className="w-4 h-4 mr-2" />
                     View Survey
-                  </Button>
+                  </button>
                 </Link>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ) : (
             survey.responses.map((response, index) => (
-              <Card key={response.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
+              <div key={response.id} className="d-card bg-base-100 shadow-xl">
+                <div className="d-card-body">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <CardTitle className="text-lg">
+                      <h3 className="text-lg font-semibold">
                         Response #{index + 1}
-                      </CardTitle>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                      </h3>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-base-content/70">
                         <span>
                           <strong>Respondent:</strong> {response.respondent_name || 'Anonymous'}
                         </span>
@@ -112,45 +130,44 @@ export default function SurveyResponses({ survey }: Props) {
                         )}
                       </div>
                     </div>
-                    <Badge variant={response.is_completed ? 'default' : 'secondary'}>
+                    <div className={`d-badge ${response.is_completed ? 'd-badge-success' : 'd-badge-neutral'}`}>
                       {response.is_completed ? 'Completed' : 'In Progress'}
-                    </Badge>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
+                  
                   <div className="space-y-4">
                     {response.question_responses.map((qr) => (
-                      <div key={qr.id} className="border-l-4 border-gray-200 pl-4">
-                        <h4 className="font-medium text-gray-900 mb-2">
+                      <div key={qr.id} className="border-l-4 border-base-300 pl-4">
+                        <h4 className="font-medium text-base-content mb-2">
                           {qr.question.question_text}
                         </h4>
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-sm text-gray-700">
-                            {qr.answer || <span className="text-gray-500 italic">No answer provided</span>}
+                        <div className="bg-base-200 rounded-lg p-3">
+                          <p className="text-sm text-base-content">
+                            {qr.answer || <span className="text-base-content/50 italic">No answer provided</span>}
                           </p>
                         </div>
                         <div className="mt-1">
-                          <Badge variant="outline" className="text-xs">
+                          <div className="d-badge d-badge-outline d-badge-xs">
                             {qr.question.question_type}
-                          </Badge>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))
           )}
         </div>
 
         {survey.responses.length > 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="text-center">
+            <p className="text-sm text-base-content/70">
               Showing {survey.responses.length} response{survey.responses.length !== 1 ? 's' : ''}
             </p>
           </div>
         )}
       </div>
-    </>
+    </AppLayout>
   );
 } 
