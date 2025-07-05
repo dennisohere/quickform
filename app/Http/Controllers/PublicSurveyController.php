@@ -193,17 +193,29 @@ class PublicSurveyController extends Controller
 
         $nextQuestion = $questions->get($currentIndex + 1);
 
+        // Send notification for new response (only on first question)
+        if ($currentIndex === 0) {
+            $notificationService = app(NotificationService::class);
+            $notification = $notificationService->createSurveyResponseNotification(
+                $survey->creator,
+                $survey,
+                1
+            );
+            $notificationService->queueEmailNotification($notification);
+        }
+
         if (!$nextQuestion) {
             // Mark response as completed
             $response->markAsCompleted();
 
             // Send notification for survey completion
             $notificationService = app(NotificationService::class);
-            $notificationService->createSurveyCompletionNotification(
+            $notification = $notificationService->createSurveyCompletionNotification(
                 $survey->creator,
                 $survey,
                 $response->respondent_name ?? 'Anonymous'
             );
+            $notificationService->queueEmailNotification($notification);
 
             return redirect()->route('public.survey.complete', [
                 'token' => $token,

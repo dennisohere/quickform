@@ -29,14 +29,14 @@ export default function SurveyFormModal({ survey, isOpen, onClose, mode }: Props
     e.preventDefault();
 
     if (mode === 'create') {
-      post('/surveys', {
+      post(route('admin.surveys.store'), {
         onSuccess: () => {
           reset();
           onClose();
         },
       });
     } else {
-      put(`/surveys/${survey?.id}`, {
+      put(route('admin.surveys.update', survey?.id), {
         onSuccess: () => {
           onClose();
         },

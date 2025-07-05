@@ -77,6 +77,11 @@ class NotificationService
         $notification->markAsSent();
     }
 
+    public function queueEmailNotification(Notification $notification): void
+    {
+        \App\Jobs\SendNotificationEmail::dispatch($notification);
+    }
+
     public function sendPendingNotifications(): void
     {
         $pendingNotifications = Notification::whereNull('sent_at')

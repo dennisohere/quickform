@@ -73,7 +73,7 @@ export default function SurveyResponses({ survey }: Props) {
             )}
           </div>
           <div className="flex gap-2">
-            <Link href={route('surveys.show', survey.id)}>
+            <Link href={route('admin.surveys.show', survey.id)}>
               <button className="d-btn d-btn-outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Survey
@@ -94,7 +94,7 @@ export default function SurveyResponses({ survey }: Props) {
                 <p className="text-base-content/70 mb-4">
                   Once people start responding to your survey, you'll see their responses here.
                 </p>
-                <Link href={route('surveys.show', survey.id)}>
+                <Link href={route('admin.surveys.show', survey.id)}>
                   <button className="d-btn d-btn-primary">
                     <Eye className="w-4 h-4 mr-2" />
                     View Survey

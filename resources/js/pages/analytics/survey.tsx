@@ -71,15 +71,15 @@ export default function SurveyAnalytics({
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'Dashboard',
-      href: '/dashboard',
+      href: route('admin.dashboard'),
     },
     {
       title: 'Analytics',
-      href: '/analytics',
+      href: route('admin.analytics'),
     },
     {
       title: survey.title,
-      href: `/analytics/survey/${survey.id}`,
+      href: route('admin.analytics.survey', survey.id),
     },
   ];
 
@@ -91,7 +91,7 @@ export default function SurveyAnalytics({
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Link href="/analytics">
+              <Link href={route('admin.analytics')}>
                 <button className="d-btn d-btn-ghost d-btn-sm">
                   <ArrowLeft className="w-4 h-4" />
                 </button>
@@ -175,45 +175,82 @@ export default function SurveyAnalytics({
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => value.toString()}
+                        tickFormatter={(value: any) => `${value}`}
                       />
-                      <Tooltip />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--b1))',
+                          border: '1px solid hsl(var(--bc) / 0.2)',
+                          borderRadius: 'var(--rounded-box)',
+                          color: 'hsl(var(--bc))',
+                        }}
+                        labelFormatter={(value: any) => {
+                          if (!value) return '';
+                          const date = new Date(String(value));
+                          return date.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          });
+                        }}
+                      />
                       <Area 
                         type="monotone"
                         dataKey="count" 
-                        stroke="#8884d8" 
-                        fill="#8884d8"
-                        fillOpacity={0.3}
+                        stroke="hsl(var(--p))" 
+                        fill="hsl(var(--p) / 0.1)" 
                         strokeWidth={2}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               )}
-              {responseTrends.length > 0 && (
-                <div className="text-center text-xs text-base-content/70 mt-2">
-                  Total responses in period: {responseTrends.reduce((sum, trend) => sum + trend.count, 0)}
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Respondent Demographics */}
+          {/* Respondent Stats */}
           <div className="d-card bg-base-100 shadow-xl">
             <div className="d-card-body">
               <h2 className="d-card-title">Respondent Information</h2>
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-                  <span>With Name</span>
-                  <div className="d-badge d-badge-primary">{stats.respondentStats.withName}</div>
+                <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                  <div>
+                    <p className="font-medium">With Name</p>
+                    <p className="text-sm text-base-content/70">Respondents who provided their name</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-primary">{stats.respondentStats.withName}</p>
+                    <p className="text-xs text-base-content/70">
+                      {stats.totalResponses > 0 ? Math.round((stats.respondentStats.withName / stats.totalResponses) * 100) : 0}%
+                    </p>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-                  <span>With Email</span>
-                  <div className="d-badge d-badge-secondary">{stats.respondentStats.withEmail}</div>
+                
+                <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                  <div>
+                    <p className="font-medium">With Email</p>
+                    <p className="text-sm text-base-content/70">Respondents who provided their email</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-secondary">{stats.respondentStats.withEmail}</p>
+                    <p className="text-xs text-base-content/70">
+                      {stats.totalResponses > 0 ? Math.round((stats.respondentStats.withEmail / stats.totalResponses) * 100) : 0}%
+                    </p>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-                  <span>Anonymous</span>
-                  <div className="d-badge d-badge-neutral">{stats.respondentStats.anonymous}</div>
+                
+                <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                  <div>
+                    <p className="font-medium">Anonymous</p>
+                    <p className="text-sm text-base-content/70">Respondents who didn't provide name or email</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-accent">{stats.respondentStats.anonymous}</p>
+                    <p className="text-xs text-base-content/70">
+                      {stats.totalResponses > 0 ? Math.round((stats.respondentStats.anonymous / stats.totalResponses) * 100) : 0}%
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -223,49 +260,46 @@ export default function SurveyAnalytics({
         {/* Question Analytics */}
         <div className="d-card bg-base-100 shadow-xl">
           <div className="d-card-body">
-            <h2 className="d-card-title">Question Analytics</h2>
+            <h2 className="d-card-title">Question Performance</h2>
             {questionAnalytics.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-base-content/70">No questions yet</p>
+                <p className="text-base-content/70">No question data available</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {questionAnalytics.map((question) => (
                   <div key={question.id} className="d-card bg-base-200 shadow-sm">
-                    <div className="d-card-body">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
+                    <div className="d-card-body p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
                           <h3 className="font-medium">{question.question_text}</h3>
-                          <div className="flex items-center gap-2 text-sm text-base-content/70 mt-1">
-                            <span className="capitalize">{question.question_type}</span>
-                            <span>• {question.total_answers} answers</span>
-                            <span>• {question.response_rate}% response rate</span>
+                          <div className="flex items-center gap-4 text-sm text-base-content/70 mt-1">
+                            <span className="d-badge d-badge-xs">{question.question_type}</span>
+                            <span>{question.total_answers} answers</span>
+                            <span>{question.response_rate}% response rate</span>
                           </div>
                         </div>
                       </div>
-
+                      
                       {/* Option counts for choice questions */}
-                      {Object.keys(question.option_counts ?? {}).length > 0 && (
-                        <div className="space-y-2">
-                          {Object.entries(question.option_counts ?? {}).map(([option, count]) => {
-                            const percentage = question.total_answers > 0 ? (count / question.total_answers) * 100 : 0;
-                            return (
-                              <div key={option} className="flex items-center justify-between">
-                                <span className="text-sm">{option}</span>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-32 bg-base-300 rounded-full h-2">
-                                    <div
-                                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                                      style={{ width: `${percentage}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-sm font-medium w-12 text-right">
-                                    {count} ({percentage.toFixed(1)}%)
-                                  </span>
+                      {question.option_counts && Object.keys(question.option_counts).length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          {Object.entries(question.option_counts).map(([option, count]) => (
+                            <div key={option} className="flex items-center justify-between">
+                              <span className="text-sm">{option}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-20 bg-base-300 rounded-full h-2">
+                                  <div 
+                                    className="bg-primary h-2 rounded-full" 
+                                    style={{ 
+                                      width: `${(count / question.total_answers) * 100}%` 
+                                    }}
+                                  ></div>
                                 </div>
+                                <span className="text-sm font-medium">{count}</span>
                               </div>
-                            );
-                          })}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -288,38 +322,37 @@ export default function SurveyAnalytics({
               <div className="space-y-4">
                 {recentResponses.map((response) => (
                   <div key={response.id} className="d-card bg-base-200 shadow-sm">
-                    <div className="d-card-body">
+                    <div className="d-card-body p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <p className="font-medium">
                             {response.respondent_name || 'Anonymous'}
                           </p>
                           <p className="text-sm text-base-content/70">
+                            {response.respondent_email}
+                          </p>
+                          <p className="text-xs text-base-content/70">
                             {new Date(response.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <div className={`d-badge ${response.is_completed ? 'd-badge-success' : 'd-badge-neutral'}`}>
+                        <div className={`d-badge ${response.is_completed ? 'd-badge-success' : 'd-badge-warning'}`}>
                           {response.is_completed ? 'Completed' : 'In Progress'}
                         </div>
                       </div>
-
-                      {response.questionResponses?.length > 0 && (
-                        <div className="space-y-2">
-                          {response.questionResponses.slice(0, 3).map((qr, index) => (
-                            <div key={index} className="text-sm">
-                              <span className="font-medium">{qr.question.question_text}:</span>
-                              <span className="ml-2 text-base-content/70">
-                                {typeof qr.answer === 'string' ? qr.answer : JSON.stringify(qr.answer)}
-                              </span>
-                            </div>
-                          ))}
-                          {response.questionResponses.length > 3 && (
-                            <p className="text-xs text-base-content/70">
-                              +{response.questionResponses.length - 3} more answers
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      
+                      <div className="space-y-2">
+                        {response.questionResponses.slice(0, 3).map((qr, index) => (
+                          <div key={index} className="text-sm">
+                            <p className="font-medium">{qr.question.question_text}</p>
+                            <p className="text-base-content/70">{qr.answer}</p>
+                          </div>
+                        ))}
+                        {response.questionResponses.length > 3 && (
+                          <p className="text-xs text-base-content/70">
+                            +{response.questionResponses.length - 3} more answers
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

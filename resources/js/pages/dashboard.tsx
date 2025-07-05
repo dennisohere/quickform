@@ -29,7 +29,7 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('admin.dashboard'),
     },
 ];
 
@@ -111,7 +111,7 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        <Link href={`/surveys/${survey.id}`}>
+                                                        <Link href={route('admin.surveys.show', survey.id)}>
                                                             <button className="d-btn d-btn-outline d-btn-sm">
                                                                 <Eye className="w-4 h-4" />
                                                             </button>
@@ -122,7 +122,7 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                                         </div>
                                     ))}
                                     <div className="text-center pt-2">
-                                        <Link href="/surveys">
+                                        <Link href={route('admin.surveys.index')}>
                                             <button className="d-btn d-btn-outline d-btn-sm">
                                                 View All Surveys
                                             </button>
@@ -144,7 +144,7 @@ export default function Dashboard({ stats, recentSurveys }: Props) {
                                     <Plus className="w-4 h-4 mr-2" />
                                     Create New Survey
                                 </button>
-                                <Link href="/surveys">
+                                <Link href={route('admin.surveys.index')}>
                                     <button className="d-btn d-btn-outline w-full justify-start">
                                         <FileText className="w-4 h-4 mr-2" />
                                         View All Surveys

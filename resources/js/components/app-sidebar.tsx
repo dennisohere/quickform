@@ -10,28 +10,28 @@ import AppLogo from './app-logo';
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('admin.dashboard'),
         icon: LayoutGrid,
     },
     {
         title: 'Surveys',
-        href: '/surveys',
+        href: route('admin.surveys.index'),
         icon: FileText,
     },
     {
         title: 'Analytics',
-        href: '/analytics',
+        href: route('admin.analytics'),
         icon: BarChart3,
     },
     {
         title: 'Notifications',
-        href: '/notifications',
+        href: route('admin.notifications'),
         icon: Bell,
     },
 ];
 
 const footerNavItems: NavItem[] = [
-    
+
 ];
 
 export function AppSidebar() {
@@ -41,7 +41,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href={route('admin.dashboard')} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

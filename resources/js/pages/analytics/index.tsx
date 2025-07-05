@@ -45,11 +45,11 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: '/dashboard',
+    href: route('admin.dashboard'),
   },
   {
     title: 'Analytics',
-    href: '/analytics',
+    href: route('admin.analytics'),
   },
 ];
 
@@ -116,7 +116,7 @@ export default function AnalyticsIndex({ stats, recentResponses, responseTrends,
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Link href={`/analytics/survey/${survey.id}`}>
+                            <Link href={route('admin.analytics.survey', survey.id)}>
                               <button className="d-btn d-btn-outline d-btn-sm">
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -154,7 +154,7 @@ export default function AnalyticsIndex({ stats, recentResponses, responseTrends,
                           {new Date(response.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <Link href={`/analytics/survey/${response.survey.id}`}>
+                      <Link href={route('admin.analytics.survey', response.survey.id)}>
                         <button className="d-btn d-btn-outline d-btn-sm">
                           <Eye className="w-4 h-4" />
                         </button>
@@ -199,24 +199,35 @@ export default function AnalyticsIndex({ stats, recentResponses, responseTrends,
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(value) => value.toString()}
+                      tickFormatter={(value: any) => `${value}`}
                     />
-                    <Tooltip />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--b1))',
+                        border: '1px solid hsl(var(--bc) / 0.2)',
+                        borderRadius: 'var(--rounded-box)',
+                        color: 'hsl(var(--bc))',
+                      }}
+                      labelFormatter={(value: any) => {
+                        if (!value) return '';
+                        const date = new Date(String(value));
+                        return date.toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        });
+                      }}
+                    />
                     <Area 
-                      type="monotone"
+                      type="monotone" 
                       dataKey="count" 
-                      stroke="#8884d8" 
-                      fill="#8884d8"
-                      fillOpacity={0.3}
+                      stroke="hsl(var(--p))" 
+                      fill="hsl(var(--p) / 0.1)" 
                       strokeWidth={2}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
-              </div>
-            )}
-            {responseTrends.length > 0 && (
-              <div className="text-center text-xs text-base-content/70 mt-2">
-                Total responses in period: {responseTrends.reduce((sum, trend) => sum + trend.count, 0)}
               </div>
             )}
           </div>

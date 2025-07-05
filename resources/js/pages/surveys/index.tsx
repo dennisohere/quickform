@@ -27,11 +27,11 @@ export default function SurveysIndex({ surveys }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'Dashboard',
-      href: '/dashboard',
+      href: route('admin.dashboard'),
     },
     {
       title: 'Surveys',
-      href: '/surveys',
+      href: route('admin.surveys.index'),
     },
   ];
 
@@ -43,7 +43,7 @@ export default function SurveysIndex({ surveys }: Props) {
 
   const deleteSurvey = (id: string) => {
     if (confirm('Are you sure you want to delete this survey?')) {
-      router.delete(`/surveys/${id}`);
+      router.delete(route('admin.surveys.destroy', id));
     }
   };
 
@@ -135,12 +135,12 @@ export default function SurveysIndex({ surveys }: Props) {
                     </div>
                     
                     <div className="flex gap-1">
-                      <Link href={`/surveys/${survey.id}`}>
+                      <Link href={route('admin.surveys.show', survey.id)}>
                         <button className="d-btn d-btn-square d-btn-ghost d-btn-sm">
                           <Eye className="w-4 h-4" />
                         </button>
                       </Link>
-                      <Link href={`/analytics/survey/${survey.id}`}>
+                      <Link href={route('admin.analytics.survey', survey.id)}>
                         <button className="d-btn d-btn-square d-btn-ghost d-btn-sm">
                           <BarChart3 className="w-4 h-4" />
                         </button>
