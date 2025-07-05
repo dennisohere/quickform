@@ -22,3 +22,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# SSL certificates
+/ssl/
+*.pem
+*.key
+*.crt

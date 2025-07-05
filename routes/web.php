@@ -1,53 +1,50 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\PublicSurveyController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\SurveyController;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Health check endpoints for deployment monitoring
+Route::get('/health', [App\Http\Controllers\HealthController::class, 'simple']);
+Route::get('/health/detailed', [App\Http\Controllers\HealthController::class, 'check']);
+
+// Public survey routes
+Route::prefix('survey')->name('survey.')->group(function () {
+    Route::get('/{survey:slug}', [PublicSurveyController::class, 'show'])->name('show');
+    Route::get('/{survey:slug}/question/{question}', [PublicSurveyController::class, 'question'])->name('question');
+    Route::post('/{survey:slug}/question/{question}', [PublicSurveyController::class, 'answer'])->name('answer');
+    Route::get('/{survey:slug}/complete', [PublicSurveyController::class, 'complete'])->name('complete');
+});
+
+// Admin routes (require authentication)
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Surveys
+    Route::resource('surveys', SurveyController::class);
+    Route::get('surveys/{survey}/responses', [SurveyController::class, 'responses'])->name('surveys.responses');
+    
+    // Questions
+    Route::resource('questions', QuestionController::class);
+    
+    // Analytics
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('analytics/survey/{survey}', [AnalyticsController::class, 'survey'])->name('analytics.survey');
+    
+    // Notifications
+    Route::get('notifications', [NotificationsController::class, 'index'])->name('notifications.index');
+});
+
+// Welcome page (landing page)
 Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+    return Inertia::render('Welcome');
+})->name('welcome');
 
-// Admin routes (authenticated)
-Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(function () {
-    Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-
-    // Analytics routes
-    Route::get('analytics', [\App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics');
-    Route::get('analytics/survey/{survey}', [\App\Http\Controllers\AnalyticsController::class, 'survey'])->name('analytics.survey');
-
-    // Survey management routes
-    Route::resource('surveys', \App\Http\Controllers\SurveyController::class)->except(['edit']);
-    Route::patch('surveys/{survey}/toggle-publish', [\App\Http\Controllers\SurveyController::class, 'togglePublish'])
-        ->name('surveys.toggle-publish');
-    Route::patch('surveys/{survey}/regenerate-token', [\App\Http\Controllers\SurveyController::class, 'regenerateToken'])
-        ->name('surveys.regenerate-token');
-    Route::get('surveys/{survey}/responses', [\App\Http\Controllers\SurveyController::class, 'responses'])
-        ->name('surveys.responses');
-
-    // Question management routes
-    Route::resource('surveys.questions', \App\Http\Controllers\QuestionController::class)
-        ->except(['index', 'show']);
-    Route::patch('surveys/{survey}/questions/reorder', [\App\Http\Controllers\QuestionController::class, 'reorder'])
-        ->name('surveys.questions.reorder');
-
-    // Notification routes
-    Route::get('notifications', [\App\Http\Controllers\NotificationsController::class, 'index'])->name('notifications');
-    Route::patch('notifications/{notification}/read', [\App\Http\Controllers\NotificationsController::class, 'markAsRead'])->name('notifications.read');
-    Route::patch('notifications/mark-all-read', [\App\Http\Controllers\NotificationsController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::get('notifications/unread-count', [\App\Http\Controllers\NotificationsController::class, 'unreadCount'])->name('notifications.unread-count');
-});
-
-// Public survey routes (no auth required)
-Route::prefix('survey')->name('public.survey.')->group(function () {
-    Route::get('{token}', [\App\Http\Controllers\PublicSurveyController::class, 'show'])->name('show');
-    Route::post('{token}/start', [\App\Http\Controllers\PublicSurveyController::class, 'start'])->name('start');
-    Route::get('{token}/response/{responseId}/question/{questionId}', [\App\Http\Controllers\PublicSurveyController::class, 'question'])
-        ->name('question');
-    Route::post('{token}/response/{responseId}/question/{questionId}/answer', [\App\Http\Controllers\PublicSurveyController::class, 'answer'])
-        ->name('answer');
-    Route::get('{token}/response/{responseId}/complete', [\App\Http\Controllers\PublicSurveyController::class, 'complete'])
-        ->name('complete');
-});
-
-require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+require __DIR__.'/settings.php';
