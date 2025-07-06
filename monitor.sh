@@ -6,9 +6,16 @@
 set -e
 
 # Configuration
-COMPOSE_FILE="docker-compose.prod.yml"
+COMPOSE_FILE="docker-compose.yml"
 HEALTH_URL="http://localhost/health"
 DETAILED_HEALTH_URL="http://localhost/health/detailed"
+
+# Check if SSL compose file exists and use it if available
+if [ -f "docker-compose.ssl.yml" ]; then
+    COMPOSE_FILE="docker-compose.ssl.yml"
+    HEALTH_URL="https://localhost/health"
+    DETAILED_HEALTH_URL="https://localhost/health/detailed"
+fi
 
 # Colors for output
 GREEN='\033[0;32m'

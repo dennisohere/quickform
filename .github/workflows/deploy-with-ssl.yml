@@ -1,17 +1,25 @@
-name: Deploy to Sandbox
+name: Deploy with SSL
 
 on:
   push:
     branches:
-      - sandbox
+      - production
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
       ssl_domain:
-        description: 'Domain for SSL certificate (optional)'
+        description: 'Domain for SSL certificate'
         required: false
         type: string
       ssl_email:
-        description: 'Email for SSL notifications (required if SSL domain provided)'
+        description: 'Email for SSL notifications'
         required: false
         type: string
       ssl_subdomains:
@@ -23,7 +31,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: sandbox
+    environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
       - name: Checkout code
@@ -61,9 +69,6 @@ jobs:
           echo "SSL variables in .env:"
           grep -i ssl .env || echo "No SSL variables found in .env"
           echo ""
-          echo "Checking if .env contains PostgreSQL variables:"
-          grep -i postgres .env || echo "No PostgreSQL variables found in .env"
-          echo ""
           echo "First few lines of .env file:"
           head -10 .env
 
@@ -84,7 +89,7 @@ jobs:
 
             # Pull latest changes
             git fetch origin
-            git reset --hard origin/sandbox
+            git reset --hard origin/${{ github.event.inputs.environment || 'production' }}
 
             # Make SSL setup script executable
             chmod +x ssl-setup.sh
@@ -99,45 +104,67 @@ jobs:
             fi
 
             # Stop existing containers
-            docker-compose -p quickform_sandbox down
+            docker-compose -p quickform_${{ github.event.inputs.environment || 'production' }} down
 
             # Build new containers
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox build --no-cache
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} build --no-cache
 
             # Start containers
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox up -d
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} up -d
 
             # Wait for services to be ready
             echo "Waiting for services to be ready..."
             sleep 30
 
             # Run database migrations
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan migrate --force
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan migrate --force
 
             # Clear caches
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan config:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan cache:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan route:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan view:clear
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan config:clear
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan cache:clear
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan route:clear
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan view:clear
 
             # Optimize for production
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan config:cache
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan route:cache
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan view:cache
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan config:cache
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan route:cache
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan view:cache
 
             # Set proper permissions
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app chown -R www-data:www-data storage bootstrap/cache
+            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app chown -R www-data:www-data storage bootstrap/cache
 
             # Setup SSL auto-renewal if SSL is enabled
             if [ -n "$SSL_DOMAIN" ] && [ -n "$SSL_EMAIL" ]; then
-              echo "Setting up SSL auto-renewal for sandbox..."
+              echo "Setting up SSL auto-renewal..."
               
-              # Copy renewal script to server
-              scp renew-ssl-sandbox.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/usr/local/bin/renew-ssl-sandbox.sh
-              ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "chmod +x /usr/local/bin/renew-ssl-sandbox.sh"
+              # Create renewal script
+              cat > /usr/local/bin/renew-ssl-docker.sh << 'RENEWAL_EOF'
+#!/bin/bash
+# SSL Certificate Renewal Script for Docker
+
+LOG_FILE="/var/log/ssl-renewal.log"
+PROJECT_NAME="quickform_${{ github.event.inputs.environment || 'production' }}"
+COMPOSE_FILE="${{ secrets.VPS_PATH }}/docker-compose.ssl.yml"
+
+# Renew certificates
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T certbot certbot renew --quiet --webroot -w /var/www/html
+
+# Reload nginx if certificates were renewed
+if [ $? -eq 0 ]; then
+  docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T nginx nginx -s reload
+  echo "$(date): SSL certificates renewed successfully" >> $LOG_FILE
+else
+  echo "$(date): SSL certificate renewal failed" >> $LOG_FILE
+fi
+RENEWAL_EOF
+
+              chmod +x /usr/local/bin/renew-ssl-docker.sh
 
               # Add to crontab if not already present
-              ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "if ! crontab -l 2>/dev/null | grep -q 'renew-ssl-sandbox.sh'; then (crontab -l 2>/dev/null; echo '0 0,12 * * * /usr/local/bin/renew-ssl-sandbox.sh') | crontab -; echo 'SSL auto-renewal cron job added for sandbox'; fi"
+              if ! crontab -l 2>/dev/null | grep -q "renew-ssl-docker.sh"; then
+                (crontab -l 2>/dev/null; echo "0 0,12 * * * /usr/local/bin/renew-ssl-docker.sh") | crontab -
+                echo "SSL auto-renewal cron job added"
+              fi
             fi
 
             echo "Deployment completed successfully!"
@@ -156,7 +183,7 @@ jobs:
       - name: Health check
         run: |
           sleep 30
-
+          
           # Determine health check URL
           if [ -n "${{ github.event.inputs.ssl_domain }}" ]; then
             HEALTH_URL="https://${{ github.event.inputs.ssl_domain }}/health"
@@ -165,7 +192,7 @@ jobs:
             HEALTH_URL="${{ secrets.VPS_URL }}/health"
             echo "Testing HTTP health check at: $HEALTH_URL"
           fi
-
+          
           # Test health endpoint
           curl -f -k "$HEALTH_URL" || exit 1
 
@@ -173,10 +200,10 @@ jobs:
         if: github.event.inputs.ssl_domain != ''
         run: |
           sleep 10
-
+          
           # Test SSL certificate
           echo "Testing SSL certificate for ${{ github.event.inputs.ssl_domain }}..."
-
+          
           # Check if certificate exists and is valid
           if echo | openssl s_client -servername "${{ github.event.inputs.ssl_domain }}" -connect "${{ github.event.inputs.ssl_domain }}:443" 2>/dev/null | openssl x509 -noout -dates; then
             echo "✅ SSL certificate is valid"
@@ -189,10 +216,10 @@ jobs:
         if: always()
         run: |
           if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ Deployment to sandbox successful!"
+            echo "✅ Deployment to ${{ github.event.inputs.environment || 'production' }} successful!"
             if [ -n "${{ github.event.inputs.ssl_domain }}" ]; then
               echo "🔐 SSL certificate installed for ${{ github.event.inputs.ssl_domain }}"
             fi
           else
-            echo "❌ Deployment to sandbox failed!"
-          fi
+            echo "❌ Deployment to ${{ github.event.inputs.environment || 'production' }} failed!"
+          fi 
