@@ -9,7 +9,7 @@ services:
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
-            - codefiles:/var/www
+            - code_base:/var/www
         networks:
             - app_network
         depends_on:
@@ -67,7 +67,7 @@ services:
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
-            - codefiles:/var/www
+            - code_base:/var/www
         networks:
             - app_network
         depends_on:
@@ -87,8 +87,7 @@ services:
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
-            - ./storage:/var/www/storage
-            - ./bootstrap/cache:/var/www/bootstrap/cache
+            - code_base:/var/www
         networks:
             - app_network
         depends_on:
@@ -101,6 +100,7 @@ services:
         command: php artisan schedule:work
 
 volumes:
+    code_base:
     db_data:
     redis_data:
 
