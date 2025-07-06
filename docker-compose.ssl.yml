@@ -71,7 +71,7 @@ services:
             - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
         command: >
             sh -c "
-              /usr/local/bin/ssl-setup.sh &&
+              /usr/local/bin/ssl-setup.sh nginx &&
               nginx -g 'daemon off;'
             "
 
@@ -91,7 +91,7 @@ services:
             - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
         command: >
             sh -c "
-              /usr/local/bin/ssl-setup.sh &&
+              /usr/local/bin/ssl-setup.sh certbot &&
               echo 'SSL setup completed'
             "
         depends_on:
