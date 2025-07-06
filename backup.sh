@@ -8,7 +8,12 @@ set -e
 # Configuration
 BACKUP_DIR="/var/backups/quickform"
 DATE=$(date +%Y%m%d_%H%M%S)
-COMPOSE_FILE="docker-compose.prod.yml"
+COMPOSE_FILE="docker-compose.yml"
+
+# Check if SSL compose file exists and use it if available
+if [ -f "docker-compose.ssl.yml" ]; then
+    COMPOSE_FILE="docker-compose.ssl.yml"
+fi
 
 # Colors for output
 GREEN='\033[0;32m'

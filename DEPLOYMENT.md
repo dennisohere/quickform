@@ -1,8 +1,35 @@
 # QuickForm Deployment Guide
 
-This guide explains how to set up automated deployment of the QuickForm application to your VPS using GitHub Actions and Docker Compose.
+This guide covers deployment of the QuickForm application using GitHub Actions with optional SSL certificate support.
+
+## Overview
+
+The QuickForm application uses automated GitHub Actions workflows for deployment with integrated SSL certificate management via Let's Encrypt and Certbot.
+
+## Deployment Options
+
+### 1. Production Deployment (`deploy-with-ssl.yml`)
+
+- Deploys from `main` branch
+- Supports automatic SSL certificate installation
+- Uses `docker-compose.ssl.yml` for SSL-enabled deployments
+- Includes comprehensive health checks and SSL verification
+
+### 2. Sandbox Deployment (`deploy-sandbox.yml`)
+
+- Deploys from `sandbox` branch
+- **SSL-enabled by default** (uses `docker-compose.ssl.yml`)
+- Uses separate project namespace (`quickform_sandbox`)
+- Perfect for testing SSL configurations before production
+- Requires SSL domain configuration via GitHub secrets
 
 ## Prerequisites
+
+### Domain Configuration
+
+- Ensure your domain points to your VPS IP address
+- Configure DNS records for main domain and subdomains
+- Allow time for DNS propagation (up to 48 hours)
 
 ### VPS Requirements
 
@@ -14,264 +41,274 @@ This guide explains how to set up automated deployment of the QuickForm applicat
 
 ### GitHub Repository Setup
 
-- Repository with `staging` and `main` branches
-- GitHub Actions enabled
+#### Required Secrets
 
-## VPS Setup
+Configure these secrets in your GitHub repository settings:
 
-### 1. Install Docker and Docker Compose
+```
+VPS_SSH_PRIVATE_KEY    # SSH private key for VPS access
+VPS_HOST               # VPS hostname or IP address
+VPS_USER               # SSH username
+VPS_PATH               # Project path on VPS (e.g., /var/www/quickform)
+VPS_URL                # Base URL for health checks (without SSL)
 
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Logout and login again for group changes to take effect
+# SSL Configuration (Required for both environments)
+SANDBOX_SSL_DOMAIN     # Sandbox domain (e.g., sandbox.example.com)
+SANDBOX_SSL_EMAIL      # Email for SSL notifications
+SANDBOX_SSL_SUBDOMAINS # Comma-separated subdomains (default: www,api)
 ```
 
-### 2. Create Application Directory
+#### Required Variables
 
-```bash
-# Create directory for the application
-mkdir -p /var/www/quickform
-cd /var/www/quickform
+Configure these variables in your GitHub repository settings:
 
-# Clone the repository
-git clone https://github.com/yourusername/quickform.git .
+```
+APP_ENV                # Application environment configuration
 ```
 
-### 3. Generate SSH Key for GitHub Actions
+## Usage
+
+### Automatic Production Deployment
+
+Push to the `main` branch to trigger automatic deployment:
 
 ```bash
-# Generate SSH key pair
-ssh-keygen -t rsa -b 4096 -C "github-actions@yourdomain.com" -f ~/.ssh/github_actions
-
-# Add public key to authorized_keys
-cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
-
-# Set proper permissions
-chmod 600 ~/.ssh/github_actions
-chmod 644 ~/.ssh/github_actions.pub
+git push origin main
 ```
 
-### 4. Configure Environment
+### Manual Production Deployment with SSL
+
+1. Go to GitHub repository → Actions → Deploy with SSL
+2. Click "Run workflow"
+3. Fill in the required parameters:
+    - **SSL Domain**: Your domain (e.g., `example.com`)
+    - **SSL Email**: Email for SSL notifications
+    - **SSL Subdomains**: Comma-separated subdomains (default: `www,api`)
+
+### Sandbox Deployment
+
+#### Automatic (SSL-enabled by default)
 
 ```bash
-# Copy environment file
-cp .env.example .env
-
-# Edit environment file with your settings
-nano .env
+git push origin sandbox
 ```
 
-Required environment variables:
+The sandbox deployment automatically uses SSL configuration from GitHub secrets:
 
-```env
-APP_NAME=QuickForm
-APP_ENV=production
-APP_KEY=base64:your-app-key-here
-APP_DEBUG=false
-APP_URL=https://yourdomain.com
+- `SANDBOX_SSL_DOMAIN`: Your sandbox domain (e.g., `sandbox.example.com`)
+- `SANDBOX_SSL_EMAIL`: Email for SSL notifications
+- `SANDBOX_SSL_SUBDOMAINS`: Comma-separated subdomains (default: `www,api`)
 
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=quickform_prod
-DB_USERNAME=quickform_user
-DB_PASSWORD=your-secure-password
+#### Manual with Custom SSL Parameters
 
-REDIS_HOST=redis
-REDIS_PASSWORD=null
-REDIS_PORT=6379
+1. Go to GitHub repository → Actions → Deploy to Sandbox
+2. Click "Run workflow"
+3. Fill in optional parameters to override defaults:
+    - **SSL Domain**: Override default sandbox domain
+    - **SSL Email**: Override default SSL email
+    - **SSL Subdomains**: Override default subdomains
 
-MAIL_MAILER=smtp
-MAIL_HOST=your-smtp-host
-MAIL_PORT=587
-MAIL_USERNAME=your-email
-MAIL_PASSWORD=your-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=noreply@yourdomain.com
-MAIL_FROM_NAME="${APP_NAME}"
-```
+## SSL Configuration
 
-### 5. Setup SSL Certificates
+### Certificate Types
+
+- **Domain Certificate**: Covers main domain and specified subdomains
+- **Let's Encrypt**: Free, automated certificates with 90-day validity
+
+### Auto-Renewal
+
+- Certificates are automatically renewed twice daily (00:00 and 12:00)
+- Renewal logs are stored in `/var/log/ssl-renewal-[environment].log`
+- Failed renewals are logged for troubleshooting
+
+### SSL Files Location
+
+- Certificates: `/etc/letsencrypt/live/[domain]/`
+- Private keys: `/etc/letsencrypt/archive/[domain]/`
+- Renewal config: `/etc/letsencrypt/renewal/[domain].conf`
+
+## Docker Configuration
+
+### SSL-Enabled Compose File (`docker-compose.ssl.yml`)
+
+Includes:
+
+- Nginx with SSL configuration
+- Certbot for certificate management
+- Volume mounts for SSL certificates
+- Proper port mappings (80, 443)
+
+### Container Services
+
+- `app`: Laravel application
+- `nginx`: Web server with SSL
+- `certbot`: SSL certificate management
+- `db`: Database (if configured)
+
+## Health Checks
+
+### HTTP Health Check
 
 ```bash
-# Create SSL directory
-mkdir -p ssl
-
-# For Let's Encrypt (recommended)
-sudo apt install certbot
-sudo certbot certonly --standalone -d yourdomain.com
-
-# Copy certificates to the ssl directory
-sudo cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem ssl/cert.pem
-sudo cp /etc/letsencrypt/live/yourdomain.com/privkey.pem ssl/key.pem
-
-# Set proper permissions
-sudo chown -R $USER:$USER ssl/
-chmod 600 ssl/*
+curl -f http://your-domain/health
 ```
 
-## GitHub Repository Setup
-
-### 1. Add Repository Secrets
-
-Go to your GitHub repository → Settings → Secrets and variables → Actions, and add the following secrets:
-
-- `VPS_SSH_PRIVATE_KEY`: The private SSH key content (from `~/.ssh/github_actions`)
-- `VPS_HOST`: Your VPS IP address or domain
-- `VPS_USER`: Your VPS username
-- `VPS_PATH`: Path to your application directory (e.g., `/var/www/quickform`)
-- `VPS_URL`: Your application URL (e.g., `https://yourdomain.com`)
-
-### 2. Create Branches
+### HTTPS Health Check (SSL enabled)
 
 ```bash
-# Create staging branch
-git checkout -b staging
-git push -u origin staging
-
-# Ensure main branch exists
-git checkout main
-git push -u origin main
+curl -f -k https://your-domain/health
 ```
 
-## Deployment Workflows
-
-### Automatic Deployment
-
-The application will automatically deploy when you push to specific branches:
-
-- **Staging**: Push to `staging` branch → deploys to staging environment
-- **Production**: Push to `main` branch → deploys to production environment
-
-### Manual Deployment
-
-You can also trigger deployments manually:
-
-1. Go to your GitHub repository
-2. Click on "Actions" tab
-3. Select the deployment workflow
-4. Click "Run workflow"
-
-### Manual VPS Deployment
-
-If you need to deploy manually on the VPS:
+### SSL Certificate Verification
 
 ```bash
-# For staging
-./deploy.sh staging
-
-# For production
-./deploy.sh production
-```
-
-## Monitoring and Maintenance
-
-### Health Checks
-
-The application includes a health check endpoint at `/health` that returns a simple "healthy" response.
-
-### Logs
-
-View application logs:
-
-```bash
-# All services
-docker-compose -f docker-compose.prod.yml logs
-
-# Specific service
-docker-compose -f docker-compose.prod.yml logs app
-
-# Follow logs in real-time
-docker-compose -f docker-compose.prod.yml logs -f
-```
-
-### Database Backups
-
-Create a backup script:
-
-```bash
-#!/bin/bash
-DATE=$(date +%Y%m%d_%H%M%S)
-docker-compose -f docker-compose.prod.yml exec -T db mysqldump -u quickform_user -pquickform_password quickform_prod > backup_$DATE.sql
-```
-
-### SSL Certificate Renewal
-
-Set up automatic SSL renewal:
-
-```bash
-# Add to crontab
-0 12 * * * /usr/bin/certbot renew --quiet && cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem /var/www/quickform/ssl/cert.pem && cp /etc/letsencrypt/live/yourdomain.com/privkey.pem /var/www/quickform/ssl/key.pem && docker-compose -f /var/www/quickform/docker-compose.prod.yml restart nginx
+openssl s_client -servername your-domain -connect your-domain:443
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Permission Denied**: Ensure proper file permissions
+1. **SSL Certificate Not Issued**
 
-    ```bash
-    sudo chown -R $USER:$USER /var/www/quickform
-    chmod +x deploy.sh
-    ```
+    - Check domain DNS configuration
+    - Verify domain points to VPS IP
+    - Check firewall settings (ports 80, 443)
+    - Ensure ports are open: `sudo ufw allow 80 && sudo ufw allow 443`
 
-2. **Database Connection Issues**: Check if database container is running
+2. **Auto-Renewal Fails**
 
-    ```bash
-    docker-compose -f docker-compose.prod.yml ps
-    ```
+    - Check renewal logs: `tail -f /var/log/ssl-renewal-[environment].log`
+    - Verify cron job: `crontab -l`
+    - Test renewal manually: `/usr/local/bin/renew-ssl-[environment].sh`
 
-3. **SSL Issues**: Verify certificate paths and permissions
+3. **Container Issues**
+    - Check container status: `docker-compose -p quickform ps`
+    - View logs: `docker-compose -p quickform logs [service]`
+    - Restart services: `docker-compose -p quickform restart`
 
-    ```bash
-    ls -la ssl/
-    ```
-
-4. **Port Conflicts**: Check if ports 80/443 are available
-    ```bash
-    sudo netstat -tlnp | grep :80
-    sudo netstat -tlnp | grep :443
-    ```
-
-### Rollback
-
-To rollback to a previous version:
+### Debug Commands
 
 ```bash
-# Check git log
-git log --oneline
+# Check SSL certificate status
+docker-compose -p quickform exec certbot certbot certificates
 
-# Reset to previous commit
-git reset --hard HEAD~1
+# Test nginx configuration
+docker-compose -p quickform exec nginx nginx -t
 
-# Redeploy
-./deploy.sh production
+# Check SSL renewal script
+cat /usr/local/bin/renew-ssl.sh
+
+# View cron jobs
+crontab -l
+
+# Check SSL logs
+tail -f /var/log/ssl-renewal.log
+
+# Check container health
+docker-compose -p quickform ps
+docker-compose -p quickform logs --tail=50
 ```
 
 ## Security Considerations
 
-1. **Firewall**: Configure UFW to only allow necessary ports
-2. **SSH**: Use key-based authentication and disable password login
-3. **Environment Variables**: Never commit sensitive data to version control
-4. **Regular Updates**: Keep Docker images and system packages updated
-5. **Backups**: Implement regular database and file backups
+1. **Certificate Security**
+
+    - Private keys are stored securely in `/etc/letsencrypt/archive/`
+    - Certificates are automatically renewed before expiration
+    - Failed renewals are logged for monitoring
+
+2. **Access Control**
+
+    - SSL renewal scripts are executable only by root
+    - Cron jobs run with appropriate permissions
+    - Docker containers run with limited privileges
+
+3. **Monitoring**
+    - Health checks verify application and SSL status
+    - Renewal logs track certificate management
+    - GitHub Actions provide deployment status
+
+## Rollback Procedures
+
+### From SSL to HTTP-only
+
+1. Run workflow manually without SSL parameters
+2. The workflow will automatically switch to `docker-compose.yml`
+3. SSL certificates will remain but won't be used
+4. Remove SSL cron job manually if needed
+
+### Emergency Rollback
+
+```bash
+# Stop SSL containers
+docker-compose -p quickform down
+
+# Start standard containers
+docker-compose -p quickform up -d
+
+# Remove SSL cron job
+crontab -l | grep -v "renew-ssl" | crontab -
+```
+
+## Best Practices
+
+1. **Domain Management**
+
+    - Use dedicated subdomain for sandbox (e.g., `sandbox.example.com`)
+    - Configure DNS records properly
+    - Monitor certificate expiration
+
+2. **Deployment**
+
+    - Test SSL setup in sandbox before production
+    - Monitor deployment logs for issues
+    - Verify health checks after deployment
+
+3. **Maintenance**
+    - Regularly check renewal logs
+    - Monitor certificate expiration dates
+    - Keep SSL renewal scripts updated
+
+## Monitoring and Alerts
+
+### Health Check Endpoints
+
+- Production: `https://your-domain/health`
+- Sandbox: `https://sandbox.your-domain/health`
+
+### Log Locations
+
+- Application logs: `docker-compose logs app`
+- Nginx logs: `docker-compose logs nginx`
+- SSL renewal logs: `/var/log/ssl-renewal-[environment].log`
+
+### GitHub Actions
+
+- Monitor workflow runs in GitHub Actions tab
+- Check for failed deployments and SSL setup issues
+- Review logs for troubleshooting
 
 ## Support
 
-For issues with deployment:
+For deployment issues:
 
-1. Check the GitHub Actions logs
-2. Review VPS logs: `docker-compose logs`
-3. Verify environment configuration
-4. Ensure all prerequisites are met
+1. Check GitHub Actions logs first
+2. Review server logs and renewal logs
+3. Verify DNS and network configuration
+4. Test SSL setup manually if needed
+5. Check container health and status
+
+## File Structure
+
+```
+quickform/
+├── .github/workflows/
+│   ├── deploy-with-ssl.yml      # Production deployment with SSL
+│   └── deploy-sandbox.yml       # Sandbox deployment with optional SSL
+├── docker-compose.yml           # Standard Docker configuration
+├── docker-compose.ssl.yml       # SSL-enabled Docker configuration
+├── renew-ssl-sandbox.sh         # Sandbox SSL renewal script
+├── DEPLOYMENT.md                # This comprehensive guide
+└── README.md                    # Project overview
+```

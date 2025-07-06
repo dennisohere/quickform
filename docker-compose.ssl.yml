@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: app
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - code_base:/var/www
+        networks:
+            - app_network
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        env_file:
+            - .env
+        environment:
+            - SSL_DOMAIN=${SSL_DOMAIN:-}
+            - SSL_EMAIL=${SSL_EMAIL:-}
+            - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
+
+    db:
+        image: postgres:13
+        restart: unless-stopped
+        env_file:
+            - .env
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        networks:
+            - app_network
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U postgres -d app" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+
+    redis:
+        image: redis:7-alpine
+        container_name: app_redis_prod
+        restart: unless-stopped
+        volumes:
+            - redis_data:/data
+        networks:
+            - app_network
+
+    nginx:
+        image: nginx:alpine
+        container_name: app_nginx_prod
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx-ssl.conf:/etc/nginx/nginx.conf:ro
+            - /etc/letsencrypt:/etc/letsencrypt:ro
+            - ./storage/logs:/var/log/nginx
+            - ./ssl-setup.sh:/usr/local/bin/ssl-setup.sh:ro
+        networks:
+            - app_network
+        depends_on:
+            - app
+        environment:
+            - SSL_DOMAIN=${SSL_DOMAIN:-}
+            - SSL_EMAIL=${SSL_EMAIL:-}
+            - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
+        command: >
+            sh -c "
+              /usr/local/bin/ssl-setup.sh &&
+              nginx -g 'daemon off;'
+            "
+
+    certbot:
+        image: certbot/certbot:latest
+        container_name: app_certbot
+        restart: "no"
+        volumes:
+            - /etc/letsencrypt:/etc/letsencrypt
+            - /var/lib/letsencrypt:/var/lib/letsencrypt
+            - ./ssl-setup.sh:/usr/local/bin/ssl-setup.sh:ro
+        networks:
+            - app_network
+        environment:
+            - SSL_DOMAIN=${SSL_DOMAIN:-}
+            - SSL_EMAIL=${SSL_EMAIL:-}
+            - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
+        command: >
+            sh -c "
+              /usr/local/bin/ssl-setup.sh &&
+              echo 'SSL setup completed'
+            "
+        depends_on:
+            - nginx
+
+    queue:
+        image: app
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - code_base:/var/www
+        networks:
+            - app_network
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        env_file:
+            - .env
+        command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+
+    scheduler:
+        image: app
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - code_base:/var/www
+        networks:
+            - app_network
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        env_file:
+            - .env
+        command: php artisan schedule:work
+
+volumes:
+    code_base:
+    db_data:
+    redis_data:
+
+networks:
+    app_network:
+        driver: bridge 
