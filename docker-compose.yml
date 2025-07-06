@@ -5,7 +5,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        container_name: app
+        image: app
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
@@ -60,10 +60,7 @@ services:
             - app
 
     queue:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: app_queue_prod
+        image: app
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
@@ -80,10 +77,7 @@ services:
         command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
 
     scheduler:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: app_scheduler_prod
+        image: app
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
