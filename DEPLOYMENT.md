@@ -18,9 +18,10 @@ The QuickForm application uses automated GitHub Actions workflows for deployment
 ### 2. Sandbox Deployment (`deploy-sandbox.yml`)
 
 - Deploys from `sandbox` branch
-- Optional SSL support for testing
+- **SSL-enabled by default** (uses `docker-compose.ssl.yml`)
 - Uses separate project namespace (`quickform_sandbox`)
 - Perfect for testing SSL configurations before production
+- Requires SSL domain configuration via GitHub secrets
 
 ## Prerequisites
 
@@ -50,6 +51,11 @@ VPS_HOST               # VPS hostname or IP address
 VPS_USER               # SSH username
 VPS_PATH               # Project path on VPS (e.g., /var/www/quickform)
 VPS_URL                # Base URL for health checks (without SSL)
+
+# SSL Configuration (Required for both environments)
+SANDBOX_SSL_DOMAIN     # Sandbox domain (e.g., sandbox.example.com)
+SANDBOX_SSL_EMAIL      # Email for SSL notifications
+SANDBOX_SSL_SUBDOMAINS # Comma-separated subdomains (default: www,api)
 ```
 
 #### Required Variables
@@ -81,20 +87,26 @@ git push origin main
 
 ### Sandbox Deployment
 
-#### Automatic (No SSL)
+#### Automatic (SSL-enabled by default)
 
 ```bash
 git push origin sandbox
 ```
 
-#### Manual with SSL
+The sandbox deployment automatically uses SSL configuration from GitHub secrets:
+
+- `SANDBOX_SSL_DOMAIN`: Your sandbox domain (e.g., `sandbox.example.com`)
+- `SANDBOX_SSL_EMAIL`: Email for SSL notifications
+- `SANDBOX_SSL_SUBDOMAINS`: Comma-separated subdomains (default: `www,api`)
+
+#### Manual with Custom SSL Parameters
 
 1. Go to GitHub repository → Actions → Deploy to Sandbox
 2. Click "Run workflow"
-3. Fill in optional SSL parameters:
-    - **SSL Domain**: Your sandbox domain (e.g., `sandbox.example.com`)
-    - **SSL Email**: Email for SSL notifications
-    - **SSL Subdomains**: Comma-separated subdomains
+3. Fill in optional parameters to override defaults:
+    - **SSL Domain**: Override default sandbox domain
+    - **SSL Email**: Override default SSL email
+    - **SSL Subdomains**: Override default subdomains
 
 ## SSL Configuration
 
