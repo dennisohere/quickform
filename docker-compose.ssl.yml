@@ -71,7 +71,7 @@ services:
             - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
         command: >
             sh -c "
-              # /var/www/ssl-setup.sh nginx /var/www/ssl-setup.sh nginx &&/var/www/ssl-setup.sh nginx &&
+              /var/www/ssl-setup.sh nginx &&
               nginx -g 'daemon off;'
             "
 
