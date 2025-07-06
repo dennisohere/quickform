@@ -5,19 +5,6 @@ on:
     branches:
       - sandbox
   workflow_dispatch:
-    inputs:
-      ssl_domain:
-        description: 'Domain for SSL certificate (overrides default)'
-        required: false
-        type: string
-      ssl_email:
-        description: 'Email for SSL notifications (overrides default)'
-        required: false
-        type: string
-      ssl_subdomains:
-        description: 'Comma-separated subdomains (overrides default)'
-        required: false
-        type: string
 
 jobs:
   deploy:
@@ -43,20 +30,15 @@ jobs:
 
       - name: Add SSL environment variables
         run: |
-          # Use manual inputs if provided, otherwise use secrets/variables
-          SSL_DOMAIN="${{ github.event.inputs.ssl_domain || secrets.SANDBOX_SSL_DOMAIN }}"
-          SSL_EMAIL="${{ github.event.inputs.ssl_email || secrets.SANDBOX_SSL_EMAIL }}"
-          SSL_SUBDOMAINS="${{ github.event.inputs.ssl_subdomains || secrets.SANDBOX_SSL_SUBDOMAINS || 'www,api' }}"
-
-          # Add SSL configuration (SSL is now default for sandbox)
-          if [ -n "$SSL_DOMAIN" ] && [ -n "$SSL_EMAIL" ]; then
+          # Add SSL configuration using environment variables
+          if [ -n "${{ vars.SSL_DOMAIN }}" ] && [ -n "${{ vars.SSL_EMAIL }}" ]; then
             echo "" >> .env
             echo "# SSL Configuration" >> .env
-            echo "SSL_DOMAIN=$SSL_DOMAIN" >> .env
-            echo "SSL_EMAIL=$SSL_EMAIL" >> .env
-            echo "SSL_SUBDOMAINS=$SSL_SUBDOMAINS" >> .env
+            echo "SSL_DOMAIN=${{ vars.SSL_DOMAIN }}" >> .env
+            echo "SSL_EMAIL=${{ vars.SSL_EMAIL }}" >> .env
+            echo "SSL_SUBDOMAINS=${{ vars.SSL_SUBDOMAINS || 'www,api' }}" >> .env
           else
-            echo "Warning: SSL configuration not found. Please set SANDBOX_SSL_DOMAIN and SANDBOX_SSL_EMAIL secrets."
+            echo "Warning: SSL configuration not found. Please set SSL_DOMAIN and SSL_EMAIL environment variables."
           fi
 
       - name: Debug .env file
@@ -78,80 +60,24 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
-          SSL_DOMAIN: ${{ github.event.inputs.ssl_domain || secrets.SANDBOX_SSL_DOMAIN }}
-          SSL_EMAIL: ${{ github.event.inputs.ssl_email || secrets.SANDBOX_SSL_EMAIL }}
-          SSL_SUBDOMAINS: ${{ github.event.inputs.ssl_subdomains || secrets.SANDBOX_SSL_SUBDOMAINS || 'www,api' }}
+          SSL_DOMAIN: ${{ vars.SSL_DOMAIN }}
+          SSL_EMAIL: ${{ vars.SSL_EMAIL }}
+          SSL_SUBDOMAINS: ${{ vars.SSL_SUBDOMAINS || 'www,api' }}
+          DEPLOY_ENV: sandbox
         run: |
           # Copy the generated .env file to the server
           scp .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/.env
 
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
-            cd ${{ secrets.VPS_PATH }}
-
-            # Pull latest changes
-            git fetch origin
-            git reset --hard origin/sandbox
-
-            # Make SSL setup script executable
-            chmod +x ssl-setup.sh
-
-            # Use SSL-enabled Docker Compose by default for sandbox
-            COMPOSE_FILE="docker-compose.ssl.yml"
-            if [ -n "$SSL_DOMAIN" ] && [ -n "$SSL_EMAIL" ]; then
-              echo "Using SSL-enabled Docker Compose configuration for $SSL_DOMAIN"
-            else
-              echo "Warning: SSL configuration not found, but using SSL-enabled compose file"
-            fi
-
-            # Stop existing containers
-            docker-compose -p quickform_sandbox down
-
-            # Build new containers
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox build --no-cache
-
-            # Start containers
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox up -d
-
-            # Wait for services to be ready
-            echo "Waiting for services to be ready..."
-            sleep 30
-
-            # Run database migrations
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan migrate --force
-
-            # Clear caches
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan config:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan cache:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan route:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan view:clear
-
-            # Optimize for production
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan config:cache
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan route:cache
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app php artisan view:cache
-
-            # Set proper permissions
-            docker-compose -f $COMPOSE_FILE -p quickform_sandbox exec -T app chown -R www-data:www-data storage bootstrap/cache
-
-            # Setup SSL auto-renewal for sandbox (SSL is default)
-            echo "Setting up SSL auto-renewal for sandbox..."
-            
-            # Copy renewal script to server
-            scp renew-ssl-sandbox.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/usr/local/bin/renew-ssl-sandbox.sh
-            ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "chmod +x /usr/local/bin/renew-ssl-sandbox.sh"
-
-            # Add to crontab if not already present
-            ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "if ! crontab -l 2>/dev/null | grep -q 'renew-ssl-sandbox.sh'; then (crontab -l 2>/dev/null; echo '0 0,12 * * * /usr/local/bin/renew-ssl-sandbox.sh') | crontab -; echo 'SSL auto-renewal cron job added for sandbox'; fi"
-
-            echo "Deployment completed successfully!"
-          EOF
+          # Copy and execute the deployment script
+          chmod +x deploy-script.sh
+          ./deploy-script.sh
 
       - name: Verify deployment
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
-          SSL_DOMAIN: ${{ github.event.inputs.ssl_domain || secrets.SANDBOX_SSL_DOMAIN }}
+          SSL_DOMAIN: ${{ vars.SSL_DOMAIN }}
         run: |
           echo "Verifying deployment on server:"
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_PATH }} && echo 'Docker containers:' && docker-compose ps && echo 'SSL variables in .env:' && grep -i ssl .env || echo 'No SSL variables found'"
@@ -160,12 +86,9 @@ jobs:
         run: |
           sleep 30
 
-          # Use SSL domain from secrets or manual input
-          SSL_DOMAIN="${{ github.event.inputs.ssl_domain || secrets.SANDBOX_SSL_DOMAIN }}"
-
           # Determine health check URL (prefer SSL)
-          if [ -n "$SSL_DOMAIN" ]; then
-            HEALTH_URL="https://$SSL_DOMAIN/health"
+          if [ -n "${{ vars.SSL_DOMAIN }}" ]; then
+            HEALTH_URL="https://${{ vars.SSL_DOMAIN }}/health"
             echo "Testing SSL health check at: $HEALTH_URL"
           else
             HEALTH_URL="${{ secrets.VPS_URL }}/health"
@@ -179,15 +102,12 @@ jobs:
         run: |
           sleep 10
 
-          # Use SSL domain from secrets or manual input
-          SSL_DOMAIN="${{ github.event.inputs.ssl_domain || secrets.SANDBOX_SSL_DOMAIN }}"
-
-          if [ -n "$SSL_DOMAIN" ]; then
+          if [ -n "${{ vars.SSL_DOMAIN }}" ]; then
             # Test SSL certificate
-            echo "Testing SSL certificate for $SSL_DOMAIN..."
+            echo "Testing SSL certificate for ${{ vars.SSL_DOMAIN }}..."
 
             # Check if certificate exists and is valid
-            if echo | openssl s_client -servername "$SSL_DOMAIN" -connect "$SSL_DOMAIN:443" 2>/dev/null | openssl x509 -noout -dates; then
+            if echo | openssl s_client -servername "${{ vars.SSL_DOMAIN }}" -connect "${{ vars.SSL_DOMAIN }}:443" 2>/dev/null | openssl x509 -noout -dates; then
               echo "✅ SSL certificate is valid"
             else
               echo "❌ SSL certificate verification failed"
@@ -200,12 +120,10 @@ jobs:
       - name: Notify deployment status
         if: always()
         run: |
-          SSL_DOMAIN="${{ github.event.inputs.ssl_domain || secrets.SANDBOX_SSL_DOMAIN }}"
-
           if [ ${{ job.status }} == 'success' ]; then
             echo "✅ Deployment to sandbox successful!"
-            if [ -n "$SSL_DOMAIN" ]; then
-              echo "🔐 SSL certificate installed for $SSL_DOMAIN"
+            if [ -n "${{ vars.SSL_DOMAIN }}" ]; then
+              echo "🔐 SSL certificate installed for ${{ vars.SSL_DOMAIN }}"
             else
               echo "⚠️ SSL domain not configured, but SSL-enabled deployment completed"
             fi
