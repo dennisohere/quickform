@@ -26,7 +26,18 @@ jobs:
 
       - name: Generate .env file
         run: |
-          echo "${{ secrets.APP_ENV }}" > .env
+          echo "${{ env.APP_ENV }}" > .env
+
+      - name: Debug .env file
+        run: |
+          echo "Checking if .env file was generated:"
+          ls -la .env
+          echo ""
+          echo "Checking if .env contains PostgreSQL variables:"
+          grep -i postgres .env || echo "No PostgreSQL variables found in .env"
+          echo ""
+          echo "First few lines of .env file:"
+          head -10 .env
 
       - name: Deploy to VPS
         env:
@@ -68,6 +79,15 @@ jobs:
 
             echo "Deployment completed successfully!"
           EOF
+
+      - name: Verify .env file on server
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          echo "Verifying .env file on server:"
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_PATH }} && ls -la .env && echo 'PostgreSQL variables in .env:' && grep -i postgres .env || echo 'No PostgreSQL variables found'"
 
       - name: Health check
         run: |
