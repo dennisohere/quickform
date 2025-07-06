@@ -14,19 +14,6 @@ on:
         options:
           - production
           - staging
-      ssl_domain:
-        description: 'Domain for SSL certificate'
-        required: false
-        type: string
-      ssl_email:
-        description: 'Email for SSL notifications'
-        required: false
-        type: string
-      ssl_subdomains:
-        description: 'Comma-separated subdomains'
-        required: false
-        default: 'www,api'
-        type: string
 
 jobs:
   deploy:
@@ -52,13 +39,13 @@ jobs:
 
       - name: Add SSL environment variables
         run: |
-          # Add SSL configuration if provided
-          if [ -n "${{ github.event.inputs.ssl_domain }}" ] && [ -n "${{ github.event.inputs.ssl_email }}" ]; then
+          # Add SSL configuration if environment variables are set
+          if [ -n "${{ vars.SSL_DOMAIN }}" ] && [ -n "${{ vars.SSL_EMAIL }}" ]; then
             echo "" >> .env
             echo "# SSL Configuration" >> .env
-            echo "SSL_DOMAIN=${{ github.event.inputs.ssl_domain }}" >> .env
-            echo "SSL_EMAIL=${{ github.event.inputs.ssl_email }}" >> .env
-            echo "SSL_SUBDOMAINS=${{ github.event.inputs.ssl_subdomains || 'www,api' }}" >> .env
+            echo "SSL_DOMAIN=${{ vars.SSL_DOMAIN }}" >> .env
+            echo "SSL_EMAIL=${{ vars.SSL_EMAIL }}" >> .env
+            echo "SSL_SUBDOMAINS=${{ vars.SSL_SUBDOMAINS || 'www,api' }}" >> .env
           fi
 
       - name: Debug .env file
@@ -77,105 +64,24 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
-          SSL_DOMAIN: ${{ github.event.inputs.ssl_domain }}
-          SSL_EMAIL: ${{ github.event.inputs.ssl_email }}
-          SSL_SUBDOMAINS: ${{ github.event.inputs.ssl_subdomains || 'www,api' }}
+          SSL_DOMAIN: ${{ vars.SSL_DOMAIN }}
+          SSL_EMAIL: ${{ vars.SSL_EMAIL }}
+          SSL_SUBDOMAINS: ${{ vars.SSL_SUBDOMAINS || 'www,api' }}
+          DEPLOY_ENV: ${{ github.event.inputs.environment || 'production' }}
         run: |
           # Copy the generated .env file to the server
           scp .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/.env
 
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
-            cd ${{ secrets.VPS_PATH }}
-
-            # Pull latest changes
-            git fetch origin
-            git reset --hard origin/${{ github.event.inputs.environment || 'production' }}
-
-            # Make SSL setup script executable
-            chmod +x ssl-setup.sh
-
-            # Determine which compose file to use
-            COMPOSE_FILE="docker-compose.yml"
-            if [ -n "$SSL_DOMAIN" ] && [ -n "$SSL_EMAIL" ]; then
-              COMPOSE_FILE="docker-compose.ssl.yml"
-              echo "Using SSL-enabled Docker Compose configuration"
-            else
-              echo "Using standard Docker Compose configuration"
-            fi
-
-            # Stop existing containers
-            docker-compose -p quickform_${{ github.event.inputs.environment || 'production' }} down
-
-            # Build new containers
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} build --no-cache
-
-            # Start containers
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} up -d
-
-            # Wait for services to be ready
-            echo "Waiting for services to be ready..."
-            sleep 30
-
-            # Run database migrations
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan migrate --force
-
-            # Clear caches
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan config:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan cache:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan route:clear
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan view:clear
-
-            # Optimize for production
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan config:cache
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan route:cache
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app php artisan view:cache
-
-            # Set proper permissions
-            docker-compose -f $COMPOSE_FILE -p quickform_${{ github.event.inputs.environment || 'production' }} exec -T app chown -R www-data:www-data storage bootstrap/cache
-
-            # Setup SSL auto-renewal if SSL is enabled
-            if [ -n "$SSL_DOMAIN" ] && [ -n "$SSL_EMAIL" ]; then
-              echo "Setting up SSL auto-renewal..."
-              
-              # Create renewal script
-              cat > /usr/local/bin/renew-ssl-docker.sh << 'RENEWAL_EOF'
-#!/bin/bash
-# SSL Certificate Renewal Script for Docker
-
-LOG_FILE="/var/log/ssl-renewal.log"
-PROJECT_NAME="quickform_${{ github.event.inputs.environment || 'production' }}"
-COMPOSE_FILE="${{ secrets.VPS_PATH }}/docker-compose.ssl.yml"
-
-# Renew certificates
-docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T certbot certbot renew --quiet --webroot -w /var/www/html
-
-# Reload nginx if certificates were renewed
-if [ $? -eq 0 ]; then
-  docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T nginx nginx -s reload
-  echo "$(date): SSL certificates renewed successfully" >> $LOG_FILE
-else
-  echo "$(date): SSL certificate renewal failed" >> $LOG_FILE
-fi
-RENEWAL_EOF
-
-              chmod +x /usr/local/bin/renew-ssl-docker.sh
-
-              # Add to crontab if not already present
-              if ! crontab -l 2>/dev/null | grep -q "renew-ssl-docker.sh"; then
-                (crontab -l 2>/dev/null; echo "0 0,12 * * * /usr/local/bin/renew-ssl-docker.sh") | crontab -
-                echo "SSL auto-renewal cron job added"
-              fi
-            fi
-
-            echo "Deployment completed successfully!"
-          EOF
+          # Copy and execute the deployment script
+          chmod +x deploy-script.sh
+          ./deploy-script.sh
 
       - name: Verify deployment
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
-          SSL_DOMAIN: ${{ github.event.inputs.ssl_domain }}
+          SSL_DOMAIN: ${{ vars.SSL_DOMAIN }}
         run: |
           echo "Verifying deployment on server:"
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_PATH }} && echo 'Docker containers:' && docker-compose ps && echo 'SSL variables in .env:' && grep -i ssl .env || echo 'No SSL variables found'"
@@ -183,29 +89,29 @@ RENEWAL_EOF
       - name: Health check
         run: |
           sleep 30
-          
+
           # Determine health check URL
-          if [ -n "${{ github.event.inputs.ssl_domain }}" ]; then
-            HEALTH_URL="https://${{ github.event.inputs.ssl_domain }}/health"
+          if [ -n "${{ vars.SSL_DOMAIN }}" ]; then
+            HEALTH_URL="https://${{ vars.SSL_DOMAIN }}/health"
             echo "Testing SSL health check at: $HEALTH_URL"
           else
             HEALTH_URL="${{ secrets.VPS_URL }}/health"
             echo "Testing HTTP health check at: $HEALTH_URL"
           fi
-          
+
           # Test health endpoint
           curl -f -k "$HEALTH_URL" || exit 1
 
       - name: SSL verification (if SSL enabled)
-        if: github.event.inputs.ssl_domain != ''
+        if: vars.SSL_DOMAIN != ''
         run: |
           sleep 10
-          
+
           # Test SSL certificate
-          echo "Testing SSL certificate for ${{ github.event.inputs.ssl_domain }}..."
-          
+          echo "Testing SSL certificate for ${{ vars.SSL_DOMAIN }}..."
+
           # Check if certificate exists and is valid
-          if echo | openssl s_client -servername "${{ github.event.inputs.ssl_domain }}" -connect "${{ github.event.inputs.ssl_domain }}:443" 2>/dev/null | openssl x509 -noout -dates; then
+          if echo | openssl s_client -servername "${{ vars.SSL_DOMAIN }}" -connect "${{ vars.SSL_DOMAIN }}:443" 2>/dev/null | openssl x509 -noout -dates; then
             echo "✅ SSL certificate is valid"
           else
             echo "❌ SSL certificate verification failed"
@@ -217,9 +123,9 @@ RENEWAL_EOF
         run: |
           if [ ${{ job.status }} == 'success' ]; then
             echo "✅ Deployment to ${{ github.event.inputs.environment || 'production' }} successful!"
-            if [ -n "${{ github.event.inputs.ssl_domain }}" ]; then
-              echo "🔐 SSL certificate installed for ${{ github.event.inputs.ssl_domain }}"
+            if [ -n "${{ vars.SSL_DOMAIN }}" ]; then
+              echo "🔐 SSL certificate installed for ${{ vars.SSL_DOMAIN }}"
             fi
           else
             echo "❌ Deployment to ${{ github.event.inputs.environment || 'production' }} failed!"
-          fi 
+          fi
