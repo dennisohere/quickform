@@ -14,6 +14,7 @@ NC='\033[0m' # No Color
 # Configuration
 ENVIRONMENT=${1:-staging}
 COMPOSE_FILE="docker-compose.yml"
+PROJECT_NAME="quickform_${ENVIRONMENT}"
 
 if [ "$ENVIRONMENT" = "production" ]; then
     COMPOSE_FILE="docker-compose.prod.yml"
@@ -64,33 +65,33 @@ elif [ ! -f .env ]; then
 fi
 
 log "🐳 Stopping existing containers..."
-docker-compose -f $COMPOSE_FILE down
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME down
 
 log "🔨 Building new containers..."
-docker-compose -f $COMPOSE_FILE build --no-cache
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME build --no-cache
 
 log "🚀 Starting containers..."
-docker-compose -f $COMPOSE_FILE up -d
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME up -d
 
 log "⏳ Waiting for services to be ready..."
 sleep 30
 
 log "🗄️ Running database migrations..."
-docker-compose -f $COMPOSE_FILE exec -T app php artisan migrate --force
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan migrate --force
 
 log "🧹 Clearing application caches..."
-docker-compose -f $COMPOSE_FILE exec -T app php artisan config:clear
-docker-compose -f $COMPOSE_FILE exec -T app php artisan cache:clear
-docker-compose -f $COMPOSE_FILE exec -T app php artisan route:clear
-docker-compose -f $COMPOSE_FILE exec -T app php artisan view:clear
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan config:clear
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan cache:clear
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan route:clear
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan view:clear
 
 log "⚡ Optimizing for production..."
-docker-compose -f $COMPOSE_FILE exec -T app php artisan config:cache
-docker-compose -f $COMPOSE_FILE exec -T app php artisan route:cache
-docker-compose -f $COMPOSE_FILE exec -T app php artisan view:cache
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan config:cache
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan route:cache
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app php artisan view:cache
 
 log "🔐 Setting proper permissions..."
-docker-compose -f $COMPOSE_FILE exec -T app chown -R www-data:www-data storage bootstrap/cache
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec -T app chown -R www-data:www-data storage bootstrap/cache
 
 log "🏥 Running health check..."
 sleep 10
@@ -102,6 +103,6 @@ fi
 
 log "🎉 Deployment completed successfully!"
 log "📊 Container status:"
-docker-compose -f $COMPOSE_FILE ps
+docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME ps
 
 echo -e "${GREEN}✨ QuickForm is now deployed and running!${NC}" 

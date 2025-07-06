@@ -56,26 +56,26 @@ jobs:
             git reset --hard origin/sandbox
 
             # Build and deploy with Docker Compose
-            docker-compose down
-            docker-compose build --no-cache
-            docker-compose up -d
+            docker-compose -p quickform_sandbox down
+            docker-compose -p quickform_sandbox build --no-cache
+            docker-compose -p quickform_sandbox up -d
 
             # Run database migrations
-            docker-compose exec -T app php artisan migrate --force
+            docker-compose -p quickform_sandbox exec -T app php artisan migrate --force
 
             # Clear caches
-            docker-compose exec -T app php artisan config:clear
-            docker-compose exec -T app php artisan cache:clear
-            docker-compose exec -T app php artisan route:clear
-            docker-compose exec -T app php artisan view:clear
+            docker-compose -p quickform_sandbox exec -T app php artisan config:clear
+            docker-compose -p quickform_sandbox exec -T app php artisan cache:clear
+            docker-compose -p quickform_sandbox exec -T app php artisan route:clear
+            docker-compose -p quickform_sandbox exec -T app php artisan view:clear
 
             # Optimize for production
-            docker-compose exec -T app php artisan config:cache
-            docker-compose exec -T app php artisan route:cache
-            docker-compose exec -T app php artisan view:cache
+            docker-compose -p quickform_sandbox exec -T app php artisan config:cache
+            docker-compose -p quickform_sandbox exec -T app php artisan route:cache
+            docker-compose -p quickform_sandbox exec -T app php artisan view:cache
 
             # Set proper permissions
-            docker-compose exec -T app chown -R www-data:www-data storage bootstrap/cache
+            docker-compose -p quickform_sandbox exec -T app chown -R www-data:www-data storage bootstrap/cache
 
             echo "Deployment completed successfully!"
           EOF
@@ -87,7 +87,7 @@ jobs:
           VPS_PATH: ${{ secrets.VPS_PATH }}
         run: |
           echo "Verifying .env file on server:"
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_PATH }} && ls -la .env && echo 'PostgreSQL variables in .env:' && grep -i postgres .env || echo 'No PostgreSQL variables found'"
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_PATH }} && ls -la .env && echo 'PostgreSQL variables in .env:' && grep -i postgres .env || echo 'No PostgreSQL variables found' && echo 'Docker containers:' && docker-compose -p quickform_sandbox ps"
 
       - name: Health check
         run: |

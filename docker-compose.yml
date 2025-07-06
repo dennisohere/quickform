@@ -9,8 +9,7 @@ services:
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
-            - ./storage:/var/www/storage
-            - ./bootstrap/cache:/var/www/bootstrap/cache
+            - codefiles:/var/www
         networks:
             - app_network
         depends_on:
@@ -68,8 +67,7 @@ services:
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
-            - ./storage:/var/www/storage
-            - ./bootstrap/cache:/var/www/bootstrap/cache
+            - codefiles:/var/www
         networks:
             - app_network
         depends_on:
