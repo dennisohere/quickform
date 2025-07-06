@@ -3,7 +3,7 @@ name: Deploy to Staging
 on:
   push:
     branches:
-      - staging
+      - sandbox
   workflow_dispatch:
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
 
       - name: Generate .env file
         run: |
-          echo "${{ secrets.APP_ENV }}" > .env
+          echo "${{ env.APP_ENV }}" > .env
 
       - name: Deploy to VPS
         env:

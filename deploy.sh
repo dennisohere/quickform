@@ -55,7 +55,10 @@ git fetch origin
 git reset --hard origin/$ENVIRONMENT
 
 log "🔧 Setting up environment file..."
-if [ ! -f .env ]; then
+if [ -n "$APP_ENV" ]; then
+    echo "$APP_ENV" > .env
+    log "Generated .env file from APP_ENV environment variable"
+elif [ ! -f .env ]; then
     cp .env.example .env
     warning "Created .env file from .env.example. Please configure it with your settings."
 fi
