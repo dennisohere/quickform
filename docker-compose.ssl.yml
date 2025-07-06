@@ -57,10 +57,10 @@ services:
             - "80:80"
             - "443:443"
         volumes:
+            - code_base:/var/www
             - ./nginx-ssl.conf:/etc/nginx/nginx.conf:ro
             - /etc/letsencrypt:/etc/letsencrypt:ro
             - ./storage/logs:/var/log/nginx
-            - ./ssl-setup.sh:/usr/local/bin/ssl-setup.sh:ro
         networks:
             - app_network
         depends_on:
@@ -71,7 +71,7 @@ services:
             - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
         command: >
             sh -c "
-              /usr/local/bin/ssl-setup.sh nginx &&
+              /var/www/ssl-setup.sh nginx &&
               nginx -g 'daemon off;'
             "
 
@@ -80,9 +80,9 @@ services:
         container_name: app_certbot
         restart: "no"
         volumes:
+            - code_base:/var/www
             - /etc/letsencrypt:/etc/letsencrypt
             - /var/lib/letsencrypt:/var/lib/letsencrypt
-            - ./ssl-setup.sh:/usr/local/bin/ssl-setup.sh:ro
         networks:
             - app_network
         environment:
@@ -91,7 +91,7 @@ services:
             - SSL_SUBDOMAINS=${SSL_SUBDOMAINS:-}
         command: >
             sh -c "
-              /usr/local/bin/ssl-setup.sh certbot &&
+              /var/www/ssl-setup.sh certbot &&
               echo 'SSL setup completed'
             "
         depends_on:
