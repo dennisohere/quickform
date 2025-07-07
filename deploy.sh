@@ -161,9 +161,9 @@ ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COM
 ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COMPOSE_PROJECT_NAME exec -T app php artisan route:cache"
 ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COMPOSE_PROJECT_NAME exec -T app php artisan view:cache"
 
-# Set proper permissions
+# Set proper permissions (using the dev user that's configured in Dockerfile)
 echo -e "${BLUE}🔐 Setting proper permissions...${NC}"
-ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COMPOSE_PROJECT_NAME exec -T app chown -R www-data:www-data storage bootstrap/cache"
+ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COMPOSE_PROJECT_NAME exec -T --user root app chown -R dev:dev storage bootstrap/cache && chmod -R 775 storage bootstrap/cache" || echo "Permission setting failed (this is OK if files are already owned correctly)"
 
 # Restart queue and scheduler to ensure they pick up new code
 echo -e "${BLUE}🔄 Restarting queue and scheduler services...${NC}"

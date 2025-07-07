@@ -37,13 +37,17 @@ WORKDIR /var/www
 # Copy application files
 COPY . /var/www
 
+# Set proper ownership for all files
+RUN chown -R dev:dev /var/www
+
 # Install Composer dependencies
 RUN composer install --no-interaction
 
 # Install Node dependencies and build assets
 RUN npm ci && npm run build
 
-COPY --chown=dev:dev . /var/www
+# Ensure storage and bootstrap/cache are writable
+RUN chmod -R 775 storage bootstrap/cache
 
 # Change current user to dev
 USER dev
