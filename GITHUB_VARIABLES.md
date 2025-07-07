@@ -33,9 +33,9 @@ Set these in your GitHub repository: **Settings → Secrets and variables → Ac
 
 Set these in your GitHub repository: **Settings → Secrets and variables → Actions → Secrets**
 
-| Secret            | Description                    |
-| ----------------- | ------------------------------ |
-| `SSH_PRIVATE_KEY` | Private SSH key for VPS access |
+| Secret                | Description                    |
+| --------------------- | ------------------------------ |
+| `VPS_SSH_PRIVATE_KEY` | Private SSH key for VPS access |
 
 ## 🚀 How It Works
 
@@ -120,7 +120,7 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub root@your-vps-ip
     ```
 2. Go to GitHub repository → Settings → Secrets and variables → Actions
 3. Click **New repository secret**
-4. Name: `SSH_PRIVATE_KEY`
+4. Name: `VPS_SSH_PRIVATE_KEY`
 5. Value: Paste your private key content
 
 ### Step 3: Add Repository Variables
