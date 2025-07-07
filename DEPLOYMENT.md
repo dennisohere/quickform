@@ -78,26 +78,30 @@ FORCE_REBUILD=true ./deploy.sh
 
 # Clear project volumes (safe - only affects this project)
 CLEAR_VOLUMES=true ./deploy.sh
+
+# Seed database with sample data
+SEED_DATA=true ./deploy.sh
 ```
 
 ### GitHub Variables (Recommended)
 
 For automated deployments, set these in GitHub repository variables:
 
-| Variable        | Description              | Example                           |
-| --------------- | ------------------------ | --------------------------------- |
-| `PROJECT_NAME`  | Project name             | `quickform`                       |
-| `PROJECT_PORT`  | HTTP port                | `8080`                            |
-| `FORCE_REBUILD` | Force rebuild containers | `true`                            |
-| `CLEAR_VOLUMES` | Clear project volumes    | `false`                           |
-| `VPS_HOST`      | VPS IP address           | `192.3.24.5`                      |
-| `VPS_USER`      | SSH user                 | `root`                            |
-| `VPS_PATH`      | Project path             | `/var/projects/quickform/sandbox` |
-| `SSL_DOMAIN`    | Domain name              | `quickform.example.com`           |
-| `SSL_EMAIL`     | SSL email                | `admin@example.com`               |
-| `DB_DATABASE`   | Database name            | `quickform_db`                    |
-| `DB_USERNAME`   | Database user            | `postgres`                        |
-| `DB_PASSWORD`   | Database password        | `your_secure_password`            |
+| Variable        | Description                    | Example                           |
+| --------------- | ------------------------------ | --------------------------------- |
+| `PROJECT_NAME`  | Project name                   | `quickform`                       |
+| `PROJECT_PORT`  | HTTP port                      | `8080`                            |
+| `FORCE_REBUILD` | Force rebuild containers       | `true`                            |
+| `CLEAR_VOLUMES` | Clear project volumes          | `false`                           |
+| `SEED_DATA`     | Seed database with sample data | `false`                           |
+| `VPS_HOST`      | VPS IP address                 | `192.3.24.5`                      |
+| `VPS_USER`      | SSH user                       | `root`                            |
+| `VPS_PATH`      | Project path                   | `/var/projects/quickform/sandbox` |
+| `SSL_DOMAIN`    | Domain name                    | `quickform.example.com`           |
+| `SSL_EMAIL`     | SSL email                      | `admin@example.com`               |
+| `DB_DATABASE`   | Database name                  | `quickform_db`                    |
+| `DB_USERNAME`   | Database user                  | `postgres`                        |
+| `DB_PASSWORD`   | Database password              | `your_secure_password`            |
 
 **Variable Priority**: Manual input → GitHub Variables → Default values
 

@@ -24,9 +24,10 @@ SSL_EMAIL="${SSL_EMAIL:-}"
 SSL_SUBDOMAINS="${SSL_SUBDOMAINS:-www,api}"
 
 
-# Deployment Options (GitHub Variables: FORCE_REBUILD, CLEAR_VOLUMES)
+# Deployment Options (GitHub Variables: FORCE_REBUILD, CLEAR_VOLUMES, SEED_DATA)
 FORCE_REBUILD="${FORCE_REBUILD:-false}"
 CLEAR_VOLUMES="${CLEAR_VOLUMES:-false}"
+SEED_DATA="${SEED_DATA:-false}"
 
 # =============================================================================
 # SCRIPT LOGIC - Don't edit below this line
@@ -54,6 +55,7 @@ if [ -n "$GITHUB_ACTIONS" ]; then
   [ -n "$PROJECT_PORT" ] && echo "    PROJECT_PORT: $PROJECT_PORT"
   [ -n "$FORCE_REBUILD" ] && echo "    FORCE_REBUILD: $FORCE_REBUILD"
   [ -n "$CLEAR_VOLUMES" ] && echo "    CLEAR_VOLUMES: $CLEAR_VOLUMES"
+  [ -n "$SEED_DATA" ] && echo "    SEED_DATA: $SEED_DATA"
 else
   echo -e "${YELLOW}⚠️  Running locally - using default values${NC}"
 fi
@@ -143,6 +145,15 @@ ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COM
 # Run database migrations
 echo -e "${BLUE}🗄️ Running database migrations...${NC}"
 ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COMPOSE_PROJECT_NAME exec -T app php artisan migrate --force"
+
+# Seed database if SEED_DATA is enabled
+if [ "$SEED_DATA" = "true" ]; then
+  echo -e "${BLUE}🌱 Seeding database with sample data...${NC}"
+  ssh $VPS_USER@$VPS_HOST "cd $VPS_PATH && docker-compose -f $COMPOSE_FILE -p $COMPOSE_PROJECT_NAME exec -T app php artisan db:seed --force"
+  echo -e "${GREEN}✅ Database seeded successfully${NC}"
+else
+  echo -e "${YELLOW}⚠️  Skipping database seeding (SEED_DATA=false)${NC}"
+fi
 
 # Clear all caches to resolve volume cache issues
 echo -e "${BLUE}🧹 Clearing application caches...${NC}"

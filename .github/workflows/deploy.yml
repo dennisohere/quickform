@@ -24,11 +24,16 @@ on:
         required: false
         default: false
         type: boolean
+      seed_data:
+        description: 'Seed database with sample data'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name }}
+    environment: sandbox
 
     # Set environment-specific variables
     env:
@@ -38,6 +43,7 @@ jobs:
       DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name }}
       FORCE_REBUILD: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild || vars.FORCE_REBUILD || 'false' }}
       CLEAR_VOLUMES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.clear_volumes || vars.CLEAR_VOLUMES || 'false' }}
+      SEED_DATA: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.seed_data || vars.SEED_DATA || 'false' }}
 
       # VPS Configuration (set these in GitHub repository variables)
       VPS_HOST: ${{ vars.VPS_HOST }}
@@ -74,6 +80,7 @@ jobs:
           echo "Port: $PROJECT_PORT"
           echo "Force Rebuild: $FORCE_REBUILD"
           echo "Clear Volumes: $CLEAR_VOLUMES"
+          echo "Seed Data: $SEED_DATA"
           echo ""
           echo "Access URLs:"
           echo "  HTTP: http://$VPS_HOST:$PROJECT_PORT"
