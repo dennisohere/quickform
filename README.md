@@ -183,11 +183,52 @@ npm run lint
 
 ## Deployment
 
-1. Set up your production environment
-2. Configure your database
-3. Set `APP_ENV=production` in your `.env`
-4. Run `npm run build` to compile assets
-5. Set up your web server to point to the `public` directory
+This project includes a **universal deployment solution** that works with Docker, Nginx, and SSL certificates.
+
+### Quick Deployment
+
+1. **Configure your project**
+
+    ```bash
+    # Edit deployment settings in deploy.sh
+    VPS_HOST="your-vps-ip"
+    VPS_USER="root"
+    VPS_PATH="/var/projects/quickform/sandbox"
+    PROJECT_NAME="quickform"
+    PROJECT_PORT="8080"
+    SSL_DOMAIN="yourdomain.com"  # Optional
+    SSL_EMAIL="admin@yourdomain.com"
+    ```
+
+2. **Set up environment**
+
+    ```bash
+    cp .env.example .env
+    # Edit .env with your configuration
+    ```
+
+3. **Deploy**
+    ```bash
+    chmod +x deploy.sh
+    ./deploy.sh
+    ```
+
+### Features
+
+- ✅ **Docker-based** deployment with Nginx
+- ✅ **Automatic SSL** certificate generation and renewal
+- ✅ **Database** setup and migrations
+- ✅ **Multi-project** support (different ports)
+- ✅ **Health monitoring** and logging
+- ✅ **Zero-downtime** deployments
+
+### Access URLs
+
+- **HTTP**: `http://your-vps-ip:8080`
+- **HTTPS**: `https://your-vps-ip:8081`
+- **Domain**: `https://yourdomain.com` (if SSL configured)
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Contributing
 

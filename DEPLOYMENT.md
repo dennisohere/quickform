@@ -1,217 +1,368 @@
-# Deployment Guide
+# QuickForm Deployment Guide
 
-This guide explains how to deploy QuickForm using GitHub Actions with SSL support.
+This is the **official deployment solution** for QuickForm using Docker, Nginx, and SSL certificates.
 
-## Overview
+## 🚀 Quick Start
 
-The deployment system uses GitHub Actions workflows that can be triggered automatically on branch pushes or manually through the GitHub Actions UI. SSL certificates are automatically managed using Let's Encrypt and Certbot.
+### 1. Configure Your Project
 
-## Environment Variables Setup
-
-Instead of using workflow inputs, the deployment now uses **GitHub Environment Variables** for better security and consistency.
-
-### Required Environment Variables
-
-Set these variables in your GitHub repository:
-
-1. Go to your repository **Settings**
-2. Navigate to **Secrets and variables** → **Actions**
-3. Click on **Variables** tab
-4. Add the following variables:
-
-#### For Production Environment:
-
-- `SSL_DOMAIN`: Your production domain (e.g., `myapp.com`)
-- `SSL_EMAIL`: Email for SSL notifications (e.g., `admin@myapp.com`)
-- `SSL_SUBDOMAINS`: Comma-separated subdomains (default: `www,api`)
-- `APP_ENV`: Application environment variables
-
-#### For Sandbox Environment:
-
-- `SSL_DOMAIN`: Your sandbox domain (e.g., `sandbox.myapp.com`)
-- `SSL_EMAIL`: Email for SSL notifications (e.g., `admin@myapp.com`)
-- `SSL_SUBDOMAINS`: Comma-separated subdomains (default: `www,api`)
-- `APP_ENV`: Application environment variables
-
-### Required Secrets
-
-Set these secrets in your GitHub repository:
-
-1. Go to your repository **Settings**
-2. Navigate to **Secrets and variables** → **Actions**
-3. Click on **Secrets** tab
-4. Add the following secrets:
-
-- `VPS_SSH_PRIVATE_KEY`: SSH private key for server access
-- `VPS_HOST`: Your VPS hostname or IP address
-- `VPS_USER`: SSH username for server access
-- `VPS_PATH`: Path to your application on the server
-- `VPS_URL`: Base URL for health checks (fallback when SSL is not configured)
-
-## Deployment Workflows
-
-### 1. Production Deployment (`deploy-with-ssl.yml`)
-
-**Triggers:**
-
-- Automatic: Push to `production` branch
-- Manual: Workflow dispatch with environment selection
-
-**Features:**
-
-- SSL certificate management
-- Automatic SSL renewal
-- Health checks
-- SSL certificate verification
-
-**Usage:**
+The deployment files are already included in this project:
 
 ```bash
-# Automatic deployment
-git push origin production
+# Core deployment files
+docker-compose.yml
+deploy.sh
+.env.example
+ssl-setup.sh
+nginx-ssl.conf
 
-# Manual deployment
-# Go to Actions → Deploy with SSL → Run workflow
-# Select environment: production or staging
+# Make deployment script executable
+chmod +x deploy.sh
 ```
 
-### 2. Sandbox Deployment (`deploy-sandbox.yml`)
+### 2. Configure Your Project
 
-**Triggers:**
-
-- Automatic: Push to `sandbox` branch
-- Manual: Workflow dispatch
-
-**Features:**
-
-- SSL certificate management (default enabled)
-- Automatic SSL renewal
-- Health checks
-- SSL certificate verification
-
-**Usage:**
+Edit the configuration variables at the top of `deploy.sh`:
 
 ```bash
-# Automatic deployment
-git push origin sandbox
+# VPS Configuration
+VPS_HOST="192.3.24.5"
+VPS_USER="root"
+VPS_PATH="/var/projects/quickform/sandbox"
 
-# Manual deployment
-# Go to Actions → Deploy to Sandbox → Run workflow
+# Project Configuration
+PROJECT_NAME="quickform"
+DEPLOY_ENV="sandbox"
+PROJECT_PORT="8080"
+
+# SSL Configuration (optional)
+SSL_DOMAIN="yourdomain.com"
+SSL_EMAIL="admin@yourdomain.com"
+
+# Database Configuration
+DB_DATABASE="quickform_db"
+DB_USERNAME="postgres"
+DB_PASSWORD="your_secure_password"
 ```
 
-## SSL Configuration
+### 3. Set Up Your .env File
 
-### Automatic SSL Setup
-
-When `SSL_DOMAIN` and `SSL_EMAIL` environment variables are set:
-
-1. **Certificate Generation**: Certbot automatically generates SSL certificates
-2. **Auto-Renewal**: Certificates are renewed automatically via cron job
-3. **Nginx Configuration**: Uses SSL-enabled nginx configuration
-4. **Health Checks**: Uses HTTPS for health checks
-
-### SSL Certificate Renewal
-
-SSL certificates are automatically renewed twice daily (at 00:00 and 12:00) using a cron job that:
-
-1. Runs `certbot renew` in the certbot container
-2. Reloads nginx if certificates were renewed
-3. Logs renewal status to `/var/log/ssl-renewal.log`
-
-## Deployment Process
-
-1. **Code Checkout**: Latest code is pulled from the specified branch
-2. **Environment Setup**: `.env` file is generated with SSL configuration
-3. **Docker Build**: Containers are built with the latest code
-4. **Database Migration**: Laravel migrations are run
-5. **Cache Optimization**: Application caches are cleared and rebuilt
-6. **SSL Setup**: SSL certificates are configured (if enabled)
-7. **Health Check**: Application health is verified
-8. **SSL Verification**: SSL certificate validity is checked
-
-## Troubleshooting
-
-### SSL Certificate Issues
-
-If SSL certificate generation fails:
-
-1. Check that `SSL_DOMAIN` and `SSL_EMAIL` are set correctly
-2. Verify DNS is pointing to your server
-3. Ensure ports 80 and 443 are open
-4. Check Certbot logs: `docker-compose logs certbot`
-
-### Deployment Failures
-
-If deployment fails:
-
-1. Check GitHub Actions logs for specific error messages
-2. Verify all required secrets and variables are set
-3. Ensure SSH access to the server is working
-4. Check server disk space and Docker status
-
-### Health Check Failures
-
-If health checks fail:
-
-1. Verify the application is running: `docker-compose ps`
-2. Check application logs: `docker-compose logs app`
-3. Verify database connectivity
-4. Check nginx configuration and logs
-
-## Manual SSL Renewal
-
-To manually renew SSL certificates:
+Copy `.env.example` to `.env` and customize:
 
 ```bash
-# SSH into your server
-ssh user@your-server
-
-# Navigate to your application directory
-cd /path/to/your/app
-
-# Run SSL renewal
-docker-compose -f docker-compose.ssl.yml exec certbot certbot renew
-
-# Reload nginx
-docker-compose -f docker-compose.ssl.yml exec nginx nginx -s reload
+cp .env.example .env
+# Edit .env with your project-specific values
 ```
 
-## Security Considerations
+### 4. Deploy!
 
-1. **Environment Variables**: Use GitHub environment variables instead of secrets for non-sensitive configuration
-2. **SSL Certificates**: Let's Encrypt certificates are automatically managed and renewed
-3. **SSH Keys**: Use SSH key-based authentication for server access
-4. **Docker Security**: Containers run with minimal privileges
-5. **Nginx Security**: SSL configuration includes security headers and best practices
+```bash
+./deploy.sh
+```
 
-## Monitoring
+## 📋 Configuration Options
 
-Monitor your deployment:
+### Environment Variables
 
-1. **GitHub Actions**: Check workflow status and logs
-2. **Server Logs**: Monitor application and nginx logs
-3. **SSL Certificates**: Check certificate expiration dates
-4. **Health Endpoints**: Monitor `/health` endpoint availability
+You can override any configuration by setting environment variables:
 
-## Support
+```bash
+# Deploy with custom settings
+PROJECT_NAME="quickform" \
+PROJECT_PORT="9090" \
+SSL_DOMAIN="quickform.com" \
+./deploy.sh
 
-For deployment issues:
+# Force rebuild
+FORCE_REBUILD=true ./deploy.sh
 
-1. Check the GitHub Actions logs for detailed error messages
-2. Verify all environment variables and secrets are correctly set
-3. Ensure your server meets the minimum requirements
-4. Review the troubleshooting section above
+# Clear project volumes (safe - only affects this project)
+CLEAR_VOLUMES=true ./deploy.sh
+```
 
-## File Structure
+### GitHub Variables (Recommended)
+
+For automated deployments, set these in GitHub repository variables:
+
+| Variable        | Description              | Example                           |
+| --------------- | ------------------------ | --------------------------------- |
+| `PROJECT_NAME`  | Project name             | `quickform`                       |
+| `PROJECT_PORT`  | HTTP port                | `8080`                            |
+| `FORCE_REBUILD` | Force rebuild containers | `true`                            |
+| `CLEAR_VOLUMES` | Clear project volumes    | `false`                           |
+| `VPS_HOST`      | VPS IP address           | `192.3.24.5`                      |
+| `VPS_USER`      | SSH user                 | `root`                            |
+| `VPS_PATH`      | Project path             | `/var/projects/quickform/sandbox` |
+| `SSL_DOMAIN`    | Domain name              | `quickform.example.com`           |
+| `SSL_EMAIL`     | SSL email                | `admin@example.com`               |
+| `DB_DATABASE`   | Database name            | `quickform_db`                    |
+| `DB_USERNAME`   | Database user            | `postgres`                        |
+| `DB_PASSWORD`   | Database password        | `your_secure_password`            |
+
+**Variable Priority**: Manual input → GitHub Variables → Default values
+
+See [GITHUB_VARIABLES.md](GITHUB_VARIABLES.md) for complete setup instructions.
+
+### Port Management
+
+Each project gets its own ports:
+
+- **HTTP**: `PROJECT_PORT` (default: 8080)
+- **HTTPS**: `PROJECT_PORT + 1` (default: 8081)
+
+Examples:
+
+- Project A: Ports 8080/8081
+- Project B: Ports 8082/8083
+- Project C: Ports 8084/8085
+
+### SSL Configuration
+
+**With SSL:**
+
+```bash
+SSL_DOMAIN="myapp.com"
+SSL_EMAIL="admin@myapp.com"
+```
+
+**Without SSL:**
+
+```bash
+SSL_DOMAIN=""
+SSL_EMAIL=""
+```
+
+## 🔧 Multi-Project Setup
+
+### Option 1: Different Ports (Recommended)
+
+Each project runs on different ports - no conflicts:
+
+```bash
+# QuickForm (Main)
+PROJECT_NAME="quickform"
+PROJECT_PORT="8080"
+
+# QuickForm (Staging)
+PROJECT_NAME="quickform-staging"
+PROJECT_PORT="8082"
+
+# QuickForm (Testing)
+PROJECT_NAME="quickform-test"
+PROJECT_PORT="8084"
+```
+
+### Option 2: Reverse Proxy (Advanced)
+
+For production with domain routing, use a reverse proxy setup.
+
+## 📁 Project Structure
+
+Your VPS will have this structure:
 
 ```
-quickform/
-├── .github/workflows/
-│   ├── deploy-with-ssl.yml      # Production deployment with SSL
-│   └── deploy-sandbox.yml       # Sandbox deployment with optional SSL
-├── docker-compose.yml           # Standard Docker configuration
-├── docker-compose.ssl.yml       # SSL-enabled Docker configuration
-├── renew-ssl-sandbox.sh         # Sandbox SSL renewal script
-├── DEPLOYMENT.md                # This comprehensive guide
-└── README.md                    # Project overview
+/var/projects/
+├── quickform/
+│   ├── sandbox/
+│   └── production/
+├── quickform-staging/
+│   ├── sandbox/
+│   └── production/
+└── quickform-test/
+    ├── sandbox/
+    └── production/
 ```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+**1. Port Already in Use**
+
+```bash
+# Check what's using the port
+ssh root@your-vps "netstat -tlnp | grep :8080"
+
+# Use a different port
+PROJECT_PORT="8082" ./deploy.sh
+```
+
+**2. Database Connection Issues**
+
+```bash
+# Check what volumes would be affected
+./list-volumes.sh
+
+# Clear project volumes and redeploy (safe - only affects this project)
+CLEAR_VOLUMES=true ./deploy.sh
+```
+
+**3. SSL Certificate Issues**
+
+```bash
+# Check SSL setup
+ssh root@your-vps "cd /var/projects/quickform/sandbox && ./ssl-setup.sh certbot"
+
+# Regenerate certificates
+ssh root@your-vps "cd /var/projects/quickform/sandbox && docker-compose -f docker-compose.yml -p quickform_sandbox exec certbot certbot renew --force-renewal"
+```
+
+**4. Container Restart Loops**
+
+```bash
+# Check logs
+ssh root@your-vps "cd /var/projects/quickform/sandbox && docker-compose -f docker-compose.yml -p quickform_sandbox logs"
+
+# Force rebuild
+FORCE_REBUILD=true ./deploy.sh
+```
+
+### Useful Commands
+
+```bash
+# View all running projects
+ssh root@your-vps "docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'"
+
+# View specific project logs
+ssh root@your-vps "cd /var/projects/quickform/sandbox && docker-compose -f docker-compose.yml -p quickform_sandbox logs -f"
+
+# Stop a project
+ssh root@your-vps "cd /var/projects/quickform/sandbox && docker-compose -f docker-compose.yml -p quickform_sandbox down"
+
+# Access project shell
+ssh root@your-vps "cd /var/projects/quickform/sandbox && docker-compose -f docker-compose.yml -p quickform_sandbox exec app bash"
+
+# Check what volumes would be affected by CLEAR_VOLUMES
+./list-volumes.sh
+```
+
+## 🔒 Security Considerations
+
+### Database Passwords
+
+- Use strong, unique passwords for each project
+- Never commit `.env` files to version control
+- Consider using Docker secrets for production
+
+### SSL Certificates
+
+- Certificates auto-renew via cron job
+- Check renewal logs: `/var/log/ssl-renewal-PROJECT_NAME.log`
+- Monitor certificate expiration
+
+### Firewall
+
+- Ensure ports 80/443 are open for SSL
+- Consider using a reverse proxy for better security
+
+## 📊 Monitoring
+
+### Health Checks
+
+```bash
+# Check all projects
+for project in /var/projects/*/sandbox; do
+  echo "Checking $(basename $(dirname $(dirname $project)))"
+  cd $project && docker-compose ps
+done
+```
+
+### Resource Usage
+
+```bash
+# Monitor resource usage
+ssh root@your-vps "docker stats --no-stream"
+```
+
+### Log Monitoring
+
+```bash
+# Monitor all project logs
+ssh root@your-vps "tail -f /var/log/ssl-renewal-*.log"
+```
+
+## 🚀 Production Checklist
+
+Before deploying to production:
+
+- [ ] Set `APP_ENV=production` in `.env`
+- [ ] Set `APP_DEBUG=false` in `.env`
+- [ ] Generate strong `APP_KEY`
+- [ ] Configure proper mail settings
+- [ ] Set up monitoring/logging
+- [ ] Configure backups
+- [ ] Test SSL certificate renewal
+- [ ] Set up proper firewall rules
+
+## 📝 Example: Deploying QuickForm
+
+Here's a complete example of deploying QuickForm:
+
+### 1. Configure
+
+```bash
+# Edit deploy.sh
+VPS_HOST="192.3.24.5"
+VPS_USER="root"
+VPS_PATH="/var/projects/quickform/sandbox"
+PROJECT_NAME="quickform"
+PROJECT_PORT="8080"
+SSL_DOMAIN="quickform.example.com"
+SSL_EMAIL="admin@example.com"
+
+# Set up .env
+cp .env.example .env
+# Edit .env with QuickForm-specific values
+```
+
+### 2. Deploy
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### 3. Access
+
+- HTTP: http://192.3.24.5:8080
+- HTTPS: https://192.3.24.5:8081
+- Domain: https://quickform.example.com
+
+## 🎉 That's It!
+
+Your QuickForm deployment solution is ready! The project now includes:
+
+- ✅ **Docker-based** deployment with Nginx
+- ✅ **Automatic SSL** certificate generation and renewal
+- ✅ **Database** setup and migrations
+- ✅ **Multi-environment** support (sandbox, staging, production)
+- ✅ **Health monitoring** and logging
+- ✅ **Zero-downtime** deployments
+
+### Quick Commands
+
+```bash
+# Deploy to sandbox
+./deploy.sh
+
+# Deploy with force rebuild
+FORCE_REBUILD=true ./deploy.sh
+
+# Deploy to different port
+PROJECT_PORT="8082" ./deploy.sh
+
+# Clear project volumes and redeploy
+CLEAR_VOLUMES=true ./deploy.sh
+```
+
+### GitHub Actions Workflow
+
+The project includes a GitHub Actions workflow for automated deployment:
+
+- **Automatic**: Push to `main`, `staging`, or `sandbox` branches
+- **Manual**: Trigger workflow with custom settings
+- **Environment-specific**: Different ports and configurations per environment
+
+See [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) for the workflow configuration.
+
+The solution handles everything automatically - just configure and deploy! 🚀

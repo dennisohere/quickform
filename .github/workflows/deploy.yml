@@ -1,0 +1,82 @@
+name: Deploy QuickForm
+
+on:
+  push:
+    branches: [sandbox, staging, production]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'sandbox'
+        type: choice
+        options:
+          - sandbox
+          - staging
+          - production
+      force_rebuild:
+        description: 'Force rebuild containers'
+        required: false
+        default: false
+        type: boolean
+      clear_volumes:
+        description: 'Clear project volumes (safe)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Set environment-specific variables
+    env:
+      # Project Configuration (set these in GitHub repository variables)
+      PROJECT_NAME: ${{ vars.PROJECT_NAME || 'quickform' }}
+      PROJECT_PORT: ${{ vars.PROJECT_PORT || '8080' }}
+      DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name }}
+      FORCE_REBUILD: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild || vars.FORCE_REBUILD || 'false' }}
+      CLEAR_VOLUMES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.clear_volumes || vars.CLEAR_VOLUMES || 'false' }}
+
+      # VPS Configuration (set these in GitHub repository variables)
+      VPS_HOST: ${{ vars.VPS_HOST }}
+      VPS_USER: ${{ vars.VPS_USER }}
+      VPS_PATH: ${{ vars.VPS_PATH }}
+
+      # SSL Configuration (optional)
+      SSL_DOMAIN: ${{ vars.SSL_DOMAIN }}
+      SSL_EMAIL: ${{ vars.SSL_EMAIL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          ssh-keyscan -H ${{ vars.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          chmod +x deploy.sh
+          ./deploy.sh
+
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployment completed!"
+          echo "Environment: $DEPLOY_ENV"
+          echo "Project: $PROJECT_NAME"
+          echo "Port: $PROJECT_PORT"
+          echo "Force Rebuild: $FORCE_REBUILD"
+          echo "Clear Volumes: $CLEAR_VOLUMES"
+          echo ""
+          echo "Access URLs:"
+          echo "  HTTP: http://$VPS_HOST:$PROJECT_PORT"
+          echo "  HTTPS: https://$VPS_HOST:$((PROJECT_PORT + 1))"
+          if [ -n "$SSL_DOMAIN" ]; then
+            echo "  Domain: https://$SSL_DOMAIN"
+          fi
